@@ -372,4 +372,4 @@ Her iki Monitor'ün detay sayfasına girildi:
 
 > **Not:** `minikube delete --all` sadece cluster'ı (container, node, pod) siler; `values.yaml` gibi yerel dosyalar diskte kalır ve yeniden kurulumda aynen kullanılabilir.
 
-> **Öğrenilen genel ders:** Bu chart'ın schema validasyonu (`values.schema.json`) oldukça katı — `env`/`NODE_OPTIONS` gibi bazı alanlar hiçbir serviste değiştirilebilir değil, sadece `resources`, `nodeSelector`, `tolerations`, `affinity` gibi standart Kubernetes alanları override edilebiliyor. Bu yüzden bellek sorunlarında container içi ayarları değiştirmek yerine, node'un toplam fiziksel kaynağını arttırmak en güvenilir çözüm oldu.
+> **Öğrenilen genel ders:** Bu chart'ın schema validasyonu (`values.schema.json`) oldukça katı — `env`/`NODE_OPTIONS` gibi bazı alanlar hiçbir serviste değiştirilebilir değil, sadece , `nodeSelector`, `tolerations`, `affinity` gibi standart Kubernetes alanları override edilebiliyor. Bu yüzden bellek sorunlarında container içi ayarları değiştirmek yerine, node'un toplam fiziksel kaynağını arttırmak en güvenilir çözüm oldu.
