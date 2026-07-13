@@ -1,0 +1,13 @@
+probes:
+  two:
+    name: "External-Probe-Node2"
+    description: "Probe 2 on Node 2"
+    enabled: true
+    monitoringWorkers: 3
+    monitorFetchLimit: 10
+    key: "31a53a30-4ce1-4963-b5e9-a634e72a81b7"
+    replicaCount: 1
+    ports:
+      http: 3874
+    nodeSelector:
+      app: oneuptime-probe
