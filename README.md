@@ -153,7 +153,7 @@ Beklenen çıktı: `STATUS: deployed`
 
 ### 3.6 — Pod'ların çalıştığını doğrula
 
-![alt text](image-2.png)
+![alt text](img/image-2.png)
 
 > Not: Burda gördüğünüz üzere podların ayağa kalkması internet hızınıza da bağlı olarak birkaç dakika alabilir endişelenmeyin biraz rahatlayın .Bir kahve ya da çay almak için tam zamanı.
 
@@ -218,7 +218,7 @@ Register ekranından yeni bir hesap oluştur, giriş yap.
 - **"Add Probe"** butonuna tıkla
 - İsim ver: `External-Probe-Node2`
 - Oluştur, **Probe Key**'i kopyala
-  ![image](image-1.png)
+  ![image](img/image-1.png)
 
 ### 4.4 — `probe2-values.yaml` dosyasını oluştur
 
@@ -296,12 +296,12 @@ kubectl get svc -n oneuptime nginx-target-svc
 `nginx-target` pod'unun `NODE` sütununda `minikube-m02` (Node 2) yazdığı doğrulandı.
 
 
-![alt text](<Screenshot 2026-07-13 at 14.41.17.png>)
+![alt text](<img/Screenshot 2026-07-13 at 14.41.17.png>)
 
 Bu şekilde gözükmesi lazım.Eğer gözükmüyorsa podların doğru nodelara yerleştirildiğinden emin olun.
 
 
-![alt text](<Screenshot 2026-07-13 at 14.57.28.png>)
+![alt text](<img/Screenshot 2026-07-13 at 14.57.28.png>)
 
 >Not:Probeların connected gözükmesi lazım.
 
