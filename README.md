@@ -78,8 +78,6 @@ helm repo add oneuptime https://helm-chart.oneuptime.com/
 helm repo update
 ```
 
-> **Not:** `https://oneuptime.github.io/oneuptime-helm` adresi **yanlıştır** (404 verir). Doğru adres yukarıdaki gibidir.
-
 ### 3.2 — Namespace oluştur
 
 ```bash
@@ -103,33 +101,28 @@ Bu dosya; ana bileşenleri Node 1'e sabitler, ağır/gereksiz bileşenleri (Clic
 
 ```bash
 cat > values.yaml << 'EOF'
-host: "localhost:8080"
-httpProtocol: http
-
-# 1. Nginx Bloğu
+# 1. Nginx Block
 nginx:
   nodeSelector:
     app: oneuptime-core
 
-# 2. PostgreSQL Bloğu
+# 2. PostgreSQL Block
 postgresql:
   primary:
     nodeSelector:
       app: oneuptime-core
 
-# 3. ClickHouse Bloğu
+# Other databases (Clickhouse, Redis, etc. follow the same pattern)
 clickhouse:
   nodeSelector:
     app: oneuptime-core
-  enabled: false
 
-# 4. Redis Bloğu
 redis:
   master:
     nodeSelector:
       app: oneuptime-core
 
-# 5. App ve Worker Blokları
+# 5. App and Worker Blocks
 app:
   nodeSelector:
     app: oneuptime-core
@@ -138,18 +131,14 @@ worker:
   nodeSelector:
     app: oneuptime-core
 
-# 6. Veritabanı Migrasyon Job'ı
-migrate:
-  nodeSelector:
-    app: oneuptime-core
 
-# 7. Varsayılan (Default) Probe
 probes:
   one:
-    # ... mevcut diğer ayarlar (name, description vb.) ...
     nodeSelector:
       app: oneuptime-core
 
+host: "localhost:8080"
+httpProtocol: http
 
 EOF
 ```
@@ -166,11 +155,19 @@ Beklenen çıktı: `STATUS: deployed`
 
 ![alt text](image-2.png)
 
-> Not: Burda gördüğünüz üzere podların ayağa kalkması internet hızınıza da bağlı olarak birkaç dakika alabilir.
+> Not: Burda gördüğünüz üzere podların ayağa kalkması internet hızınıza da bağlı olarak birkaç dakika alabilir endişelenmeyin biraz rahatlayın .Bir kahve ya da çay almak için tam zamanı.
+
+
+```bash
+kubectl get pods -n oneuptime -w
+```
+>Bu komutla arka planda izleyebilirsiniz.
+
 
 ```bash
 kubectl get pods -n oneuptime -o wide
 ```
+
 
 `NODE` sütununda tüm pod'ların `minikube` (Node 1) üzerinde olduğunu doğrula. **Bu çıktı teslim dokümanına eklenecek çıktılardan biridir.**
 
@@ -210,6 +207,8 @@ http://localhost:8080/accounts/register
 Register ekranından yeni bir hesap oluştur, giriş yap.
 
 > Not: `values.yaml` içindeki `host: "localhost:8080"` ayarı sayesinde Register/Login sırasında "Network Error" alınmaz.
+>Eğer alıyorsanız `values.yaml` dosyasını kontrol edin.
+
 > Not: localden gireceğimiz için http protokolünü http olarak belirliyoruz `values.yaml` dosyası içerisinde.
 
 ### 4.3 — Probe Key'i al
@@ -234,7 +233,7 @@ probes:
     enabled: true
     monitoringWorkers: 3
     monitorFetchLimit: 10
-    key: "31a53a30-4ce1-4963-b5e9-a634e72a81b7" //bu sizin sistemden aldıgınız probe key olacak.
+    key: "31a53a30-4ce1-4963-b5e9-a634e72a81b7"  //sistemden aldıgınız probe key
     replicaCount: 1
     ports:
       http: 3874
@@ -296,6 +295,18 @@ kubectl get svc -n oneuptime nginx-target-svc
 
 `nginx-target` pod'unun `NODE` sütununda `minikube-m02` (Node 2) yazdığı doğrulandı.
 
+
+![alt text](<Screenshot 2026-07-13 at 14.41.17.png>)
+
+Bu şekilde gözükmesi lazım.Eğer gözükmüyorsa podların doğru nodelara yerleştirildiğinden emin olun.
+
+
+![alt text](<Screenshot 2026-07-13 at 14.57.28.png>)
+
+>Not:Probeların connected gözükmesi lazım.
+
+
+
 ### 5.3 — Monitor 1'i oluştur: Node 1'deki probe → Node 2'yi izlesin
 
 Dashboard → **Monitors → Create Monitor**:
@@ -309,6 +320,11 @@ Dashboard → **Monitors → Create Monitor**:
 
 ✅ Bu monitor, **Node 1'deki probe'un Node 2'yi ağ üzerinden izlemesini** sağlar.
 
+
+
+
+
+
 ### 5.4 — Monitor 2'yi oluştur: Node 2'deki probe → Node 1'i izlesin
 
 Dashboard → **Monitors → Create Monitor**:
@@ -321,6 +337,9 @@ Dashboard → **Monitors → Create Monitor**:
 | Probe        | **External-Probe-Node2**                                            |
 
 ✅ Bu monitor, **Node 2'deki probe'un Node 1'deki ana sistemi izlemesini** sağlar.
+
+
+
 
 > Not: `/status/live` endpoint'i, chart'ın kendi `startupProbe`/`livenessProbe` tanımlarında zaten kullanılan health-check yoludur (bkz. Aşama 3'teki OOM/probe log analizinde görülen `Get "http://.../status/live"` isteği), bu yüzden ana sistemin sağlık durumunu izlemek için doğru path budur.
 
