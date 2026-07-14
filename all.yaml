@@ -1,0 +1,71 @@
+
+clickhouse:
+  nodeSelector:
+    app: oneuptime-core
+
+keda:
+  nodeSelector:
+   app: oneuptime-core
+
+# 1. Nginx Block
+nginx:
+  nodeSelector:
+    app: oneuptime-core
+
+# 2. PostgreSQL Block
+postgresql:
+  primary:
+    nodeSelector:
+      app: oneuptime-core
+
+# 3. Redis Block
+redis:
+  master:
+    nodeSelector:
+      app: oneuptime-core
+
+# 4. App and Worker Blocks
+app:
+  nodeSelector:
+    app: oneuptime-core
+
+worker:
+  nodeSelector:
+    app: oneuptime-core
+
+# 5. Database Migration Job
+migrate:
+  nodeSelector:
+    app: oneuptime-core
+
+# RollingUpdate trick to avoid resource bottlenecks (behaves like Recreate)
+
+deployment:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: "100%"
+
+# 7. Probes Configuration
+probes:
+  one:
+    nodeSelector:
+      app: oneuptime-core
+  two:
+    name: "External-Probe-Node2"
+    description: "Probe 2 on Node 2"
+    enabled: true
+    monitoringWorkers: 3
+    monitorFetchLimit: 10
+    key: "8149056e-e95d-405c-b8c9-8167cfa61392" #  secret key that you take from oneuptime interface
+    replicaCount: 1
+    ports:
+      http: 3874
+    # NodeSelector is used instead of Nodeaffinity  tight insulation
+    nodeSelector:
+      app: oneuptime-probe
+      
+# Other remaining general settings
+host: "localhost:8080"
+httpProtocol: http

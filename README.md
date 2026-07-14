@@ -43,11 +43,16 @@ minikube       Ready    control-plane   ...   v1.35.1
 minikube-m02   Ready    <none>          ...   v1.35.1
 ```
 
+Node isimleri sizde farklı olabilir , bizim nodelarımız minikube ve minikube-m02 olduğu için  komutları ona göre gireceğiz.
+Sizde farklıysa komutlarınızı ona  göre girin lütfen.
+
 ---
 
 ## Aşama 2: Node Etiketleme (Labeling)
 
 ### 2.1 — Node'ları etiketle
+
+
 
 ```bash
 kubectl label nodes minikube app=oneuptime-core
@@ -83,10 +88,12 @@ kubectl create namespace oneuptime
 
 ### 3.3 — Chart'ın varsayılan değerlerini incele (opsiyonel ama önerilir)
 
+
 ```bash
 helm show values oneuptime/oneuptime > default-values.yaml
 grep -n "nodeSelector" default-values.yaml
 ```
+
 
 Bu, `nodeSelector` alanlarının chart içinde tam olarak hangi yapıda (örn. `postgresql.primary.nodeSelector`, `redis.master.nodeSelector`) olduğunu görmeni sağlar.
 

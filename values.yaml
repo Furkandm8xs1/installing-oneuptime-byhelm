@@ -1,47 +1,40 @@
-host: "localhost:8080"
-httpProtocol: http
-
-# 1. Nginx Bloğu
+# 1. Nginx Block
 nginx:
   nodeSelector:
     app: oneuptime-core
 
-# 2. PostgreSQL Bloğu
+# 2. PostgreSQL Block
 postgresql:
   primary:
     nodeSelector:
       app: oneuptime-core
 
-# 3. ClickHouse Bloğu
+# Other databases (Clickhouse, Redis, etc. follow the same pattern)
 clickhouse:
   nodeSelector:
     app: oneuptime-core
-  enabled: false
 
-# 4. Redis Bloğu
 redis:
   master:
     nodeSelector:
       app: oneuptime-core
 
-# 5. App ve Worker Blokları
+# 5. App and Worker Blocks
 app:
   nodeSelector:
     app: oneuptime-core
-    
+
 worker:
   nodeSelector:
     app: oneuptime-core
 
-# 6. Veritabanı Migrasyon Job'ı
-migrate:
-  nodeSelector:
-    app: oneuptime-core
 
-# 7. Varsayılan (Default) Probe
 probes:
   one:
-    # ... mevcut diğer ayarlar (name, description vb.) ...
     nodeSelector:
       app: oneuptime-core
-  
+
+# WARNING: In your code, "- oneuptime-probe host: localhost:8080" was on the same line; this is a YAML syntax error.
+# host and httpProtocol are most likely separate parts of the root or probe configuration.
+host: "localhost:8080"
+httpProtocol: http

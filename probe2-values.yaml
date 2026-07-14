@@ -1,13 +1,25 @@
 probes:
-  two:
+ two:
     name: "External-Probe-Node2"
     description: "Probe 2 on Node 2"
     enabled: true
     monitoringWorkers: 3
     monitorFetchLimit: 10
-    key: "31a53a30-4ce1-4963-b5e9-a634e72a81b7"
+    key: "8149056e-e95d-405c-b8c9-8167cfa61392" #  secret key that you take from oneuptime interface
     replicaCount: 1
     ports:
       http: 3874
+    # NodeSelector is used instead of Nodeaffinity  tight insulation
     nodeSelector:
       app: oneuptime-probe
+    
+
+#  the  strategy we used below is no difference recreate method.
+#  we use rollingupdate strategy with given parameters because default-values.yaml file allow only rollingupdate strategy.
+deployment:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: "100%"
+
