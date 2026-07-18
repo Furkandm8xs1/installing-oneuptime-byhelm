@@ -38,6 +38,10 @@ migrate:
   nodeSelector:
     app: oneuptime-core
 
+aiAgent:
+  nodeSelector:
+    app: oneuptime-core
+
 # RollingUpdate trick to avoid resource bottlenecks (behaves like Recreate)
 
 deployment:
