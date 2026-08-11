@@ -1,30 +1,37 @@
+# Final merged configuration.
+# This file must remain equivalent to: values.yaml + probe2-values.yaml.
+# Replace the Probe Two key before using this file directly.
+
+host: "localhost:8080"
+httpProtocol: http
+
+image:
+  pullPolicy: IfNotPresent
 
 clickhouse:
+  enabled: true
   nodeSelector:
     app: oneuptime-core
 
 keda:
+  enabled: true
   nodeSelector:
-   app: oneuptime-core
+    app: oneuptime-core
 
-# 1. Nginx Block
 nginx:
   nodeSelector:
     app: oneuptime-core
 
-# 2. PostgreSQL Block
 postgresql:
   primary:
     nodeSelector:
       app: oneuptime-core
 
-# 3. Redis Block
 redis:
   master:
     nodeSelector:
       app: oneuptime-core
 
-# 4. App and Worker Blocks
 app:
   nodeSelector:
     app: oneuptime-core
@@ -33,16 +40,14 @@ worker:
   nodeSelector:
     app: oneuptime-core
 
-# 5. Database Migration Job
 migrate:
   nodeSelector:
     app: oneuptime-core
 
-aiAgent:
+runner:
+  enabled: true
   nodeSelector:
     app: oneuptime-core
-
-# RollingUpdate trick to avoid resource bottlenecks (behaves like Recreate)
 
 deployment:
   updateStrategy:
@@ -51,7 +56,6 @@ deployment:
       maxSurge: 0
       maxUnavailable: "100%"
 
-# 7. Probes Configuration
 probes:
   one:
     nodeSelector:
@@ -62,14 +66,9 @@ probes:
     enabled: true
     monitoringWorkers: 3
     monitorFetchLimit: 10
-    key: "8149056e-e95d-405c-b8c9-8167cfa61392" #  secret key that you take from oneuptime interface
+    key: "REPLACE_WITH_THE_NEW_PROBE_KEY"
     replicaCount: 1
     ports:
       http: 3874
-    # NodeSelector is used instead of Nodeaffinity  tight insulation
     nodeSelector:
       app: oneuptime-probe
-      
-# Other remaining general settings
-host: "localhost:8080"
-httpProtocol: http

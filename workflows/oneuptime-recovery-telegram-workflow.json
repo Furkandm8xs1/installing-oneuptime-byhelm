@@ -1,0 +1,135 @@
+{
+  "fileType": "oneuptime-resource-export",
+  "schemaVersion": 1,
+  "resourceType": "Workflow",
+  "exportedAt": "2026-08-11T20:00:00.000Z",
+  "items": [
+    {
+      "name": "Cross-Monitoring Recovery → Telegram (JSON)",
+      "description": "Cross-monitoring incident resolved durumuna geçtiğinde kişisel Telegram sohbetine Türkçe iyileşme bildirimi gönderir.",
+      "isEnabled": false,
+      "graph": {
+        "nodes": [
+          {
+            "id": "44444444-4444-4444-8444-444444444441",
+            "type": "node",
+            "position": {
+              "x": 80,
+              "y": 220
+            },
+            "selected": false,
+            "data": {
+              "nodeType": "Node",
+              "id": "incident-on-update-1",
+              "error": "",
+              "metadataId": "incident-on-update",
+              "internalId": "44444444-4444-4444-8444-444444444442",
+              "componentType": "Trigger",
+              "arguments": {
+                "listen-on": "{\"currentIncidentStateId\":true}",
+                "select": "{\"title\":true,\"description\":true,\"updatedAt\":true,\"incidentSeverity\":{\"name\":true},\"currentIncidentState\":{\"name\":true,\"isResolvedState\":true}}"
+              },
+              "returnValues": {}
+            }
+          },
+          {
+            "id": "55555555-5555-4555-8555-555555555551",
+            "type": "node",
+            "position": {
+              "x": 460,
+              "y": 220
+            },
+            "selected": false,
+            "data": {
+              "nodeType": "Node",
+              "id": "if-else-1",
+              "error": "",
+              "metadataId": "if-else",
+              "internalId": "55555555-5555-4555-8555-555555555552",
+              "componentType": "Component",
+              "arguments": {
+                "input-1-type": "text",
+                "input-1": "{{local.components.incident-on-update-1.returnValues.model.title}}",
+                "operator": "starts with",
+                "input-2-type": "text",
+                "input-2": "[Cross-Monitoring]"
+              },
+              "returnValues": {}
+            }
+          },
+          {
+            "id": "66666666-6666-4666-8666-666666666661",
+            "type": "node",
+            "position": {
+              "x": 840,
+              "y": 120
+            },
+            "selected": false,
+            "data": {
+              "nodeType": "Node",
+              "id": "if-else-2",
+              "error": "",
+              "metadataId": "if-else",
+              "internalId": "66666666-6666-4666-8666-666666666662",
+              "componentType": "Component",
+              "arguments": {
+                "input-1-type": "boolean",
+                "input-1": "{{local.components.incident-on-update-1.returnValues.model.currentIncidentState.isResolvedState}}",
+                "operator": "==",
+                "input-2-type": "boolean",
+                "input-2": "true"
+              },
+              "returnValues": {}
+            }
+          },
+          {
+            "id": "77777777-7777-4777-8777-777777777771",
+            "type": "node",
+            "position": {
+              "x": 1220,
+              "y": 20
+            },
+            "selected": false,
+            "data": {
+              "nodeType": "Node",
+              "id": "telegram-send-message-to-chat-1",
+              "error": "",
+              "metadataId": "telegram-send-message-to-chat",
+              "internalId": "77777777-7777-4777-8777-777777777772",
+              "componentType": "Component",
+              "arguments": {
+                "bot-token": "{{global.variables.TELEGRAM_BOT_TOKEN}}",
+                "chat-id": "{{global.variables.TELEGRAM_CHAT_ID}}",
+                "text": "[RECOVERED]\nBaşlık: {{local.components.incident-on-update-1.returnValues.model.title}}\nDurum: {{local.components.incident-on-update-1.returnValues.model.currentIncidentState.name}}\nİyileşme zamanı: {{local.components.incident-on-update-1.returnValues.model.updatedAt.value}}"
+              },
+              "returnValues": {}
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "edge-incident-updated-to-title-check",
+            "source": "44444444-4444-4444-8444-444444444441",
+            "sourceHandle": "success",
+            "target": "55555555-5555-4555-8555-555555555551",
+            "targetHandle": "in"
+          },
+          {
+            "id": "edge-title-check-yes-to-resolved-check",
+            "source": "55555555-5555-4555-8555-555555555551",
+            "sourceHandle": "yes",
+            "target": "66666666-6666-4666-8666-666666666661",
+            "targetHandle": "in"
+          },
+          {
+            "id": "edge-resolved-check-yes-to-telegram",
+            "source": "66666666-6666-4666-8666-666666666661",
+            "sourceHandle": "yes",
+            "target": "77777777-7777-4777-8777-777777777771",
+            "targetHandle": "in"
+          }
+        ]
+      }
+    }
+  ]
+}

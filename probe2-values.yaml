@@ -1,25 +1,16 @@
+# Phase 4 overlay. Apply this only after creating Probe Two in the dashboard
+# and replacing the placeholder below with its newly generated key.
+
 probes:
- two:
+  two:
     name: "External-Probe-Node2"
-    description: "Probe 2 on Node 2"
+    description: "aa"
     enabled: true
     monitoringWorkers: 3
     monitorFetchLimit: 10
-    key: "8149056e-e95d-405c-b8c9-8167cfa61392" #  secret key that you take from oneuptime interface
+    key: "e80ad61a-77ca-4dad-9545-1dae754c5771"
     replicaCount: 1
     ports:
       http: 3874
-    # NodeSelector is used instead of Nodeaffinity  tight insulation
     nodeSelector:
       app: oneuptime-probe
-    
-
-#  the  strategy we used below is no difference recreate method.
-#  we use rollingupdate strategy with given parameters because default-values.yaml file allow only rollingupdate strategy.
-deployment:
-  updateStrategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: "100%"
-

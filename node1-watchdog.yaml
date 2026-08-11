@@ -1,0 +1,208 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node1-watchdog-script
+  namespace: oneuptime
+  labels:
+    app.kubernetes.io/name: node1-watchdog
+    app.kubernetes.io/part-of: oneuptime-cross-monitoring
+data:
+  watchdog.sh: |
+    #!/bin/sh
+    set -u
+
+    CHECK_INTERVAL_SECONDS="${CHECK_INTERVAL_SECONDS:-30}"
+    FAILURE_THRESHOLD="${FAILURE_THRESHOLD:-3}"
+    RECOVERY_THRESHOLD="${RECOVERY_THRESHOLD:-2}"
+
+    : "${ONEUPTIME_APP_SERVICE_HOST:?ONEUPTIME_APP_SERVICE_HOST is required}"
+    : "${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN is required}"
+    : "${TELEGRAM_CHAT_ID:?TELEGRAM_CHAT_ID is required}"
+
+    TARGET_URL="http://${ONEUPTIME_APP_SERVICE_HOST}:3002/status/live"
+
+    log() {
+      printf '%s %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$1"
+    }
+
+    send_telegram() {
+      message="$1"
+      attempt=1
+
+      while [ "$attempt" -le 3 ]; do
+        if curl --fail --silent --show-error \
+          --connect-timeout 5 \
+          --max-time 15 \
+          --request POST \
+          "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+          --data-urlencode "text=${message}" \
+          >/dev/null; then
+          log "Telegram notification sent."
+          return 0
+        fi
+
+        log "Telegram notification attempt ${attempt} failed."
+        attempt=$((attempt + 1))
+
+        if [ "$attempt" -le 3 ]; then
+          sleep 5
+        fi
+      done
+
+      return 1
+    }
+
+    state="UP"
+    consecutive_failures=0
+    consecutive_successes=0
+
+    log "Watchdog started. Target: ${TARGET_URL}"
+
+    while true; do
+      if curl --fail --silent --show-error \
+        --connect-timeout 5 \
+        --max-time 10 \
+        "$TARGET_URL" \
+        >/dev/null 2>&1; then
+        consecutive_failures=0
+
+        if [ "$state" = "DOWN" ]; then
+          consecutive_successes=$((consecutive_successes + 1))
+          log "Recovery check ${consecutive_successes}/${RECOVERY_THRESHOLD} succeeded."
+
+          if [ "$consecutive_successes" -ge "$RECOVERY_THRESHOLD" ]; then
+            recovered_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+            message="$(printf '%s\n%s\n%s\n%s' \
+              '[WATCHDOG] RECOVERED' \
+              'Node 1 OneUptime Core health endpoint yeniden erişilebilir durumda.' \
+              'İki ardışık kontrol başarılı oldu.' \
+              "Zaman (UTC): ${recovered_at}")"
+
+            if ! send_telegram "$message"; then
+              log "Recovery notification could not be delivered after retries."
+            fi
+
+            state="UP"
+            consecutive_successes=0
+            log "State changed to UP."
+          fi
+        else
+          consecutive_successes=0
+        fi
+      else
+        consecutive_successes=0
+
+        if [ "$state" = "UP" ]; then
+          consecutive_failures=$((consecutive_failures + 1))
+          log "Health check ${consecutive_failures}/${FAILURE_THRESHOLD} failed."
+
+          if [ "$consecutive_failures" -ge "$FAILURE_THRESHOLD" ]; then
+            failed_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+            message="$(printf '%s\n%s\n%s\n%s' \
+              '[WATCHDOG] DOWN' \
+              'Node 1 OneUptime Core health endpoint üç ardışık kontrolde başarısız oldu.' \
+              "Hedef: ${TARGET_URL}" \
+              "Zaman (UTC): ${failed_at}")"
+
+            if ! send_telegram "$message"; then
+              log "Down notification could not be delivered after retries."
+            fi
+
+            state="DOWN"
+            consecutive_failures=0
+            log "State changed to DOWN; duplicate alerts are suppressed."
+          fi
+        fi
+      fi
+
+      sleep "$CHECK_INTERVAL_SECONDS"
+    done
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node1-watchdog
+  namespace: oneuptime
+  labels:
+    app.kubernetes.io/name: node1-watchdog
+    app.kubernetes.io/part-of: oneuptime-cross-monitoring
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node1-watchdog
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node1-watchdog
+        app.kubernetes.io/part-of: oneuptime-cross-monitoring
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: true
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - 1.1.1.1
+          - 8.8.8.8
+        options:
+          - name: ndots
+            value: "1"
+      nodeSelector:
+        app: oneuptime-probe
+        kubernetes.io/hostname: oneuptime-m02
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: watchdog
+          image: curlimages/curl:8.12.1
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - /opt/watchdog/watchdog.sh
+          env:
+            - name: CHECK_INTERVAL_SECONDS
+              value: "30"
+            - name: FAILURE_THRESHOLD
+              value: "3"
+            - name: RECOVERY_THRESHOLD
+              value: "2"
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: oneuptime-watchdog-telegram
+                  key: TELEGRAM_BOT_TOKEN
+            - name: TELEGRAM_CHAT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: oneuptime-watchdog-telegram
+                  key: TELEGRAM_CHAT_ID
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: watchdog-script
+              mountPath: /opt/watchdog
+              readOnly: true
+      volumes:
+        - name: watchdog-script
+          configMap:
+            name: node1-watchdog-script
+            defaultMode: 0555

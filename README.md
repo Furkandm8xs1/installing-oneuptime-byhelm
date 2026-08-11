@@ -1,395 +1,262 @@
-# Distributed OneUptime Monitoring on Kubernetes
+# OneUptime Cross-Node Monitoring and Incident Automation
 
-A hands-on implementation of a two-node Kubernetes cluster running OneUptime, configured so that the core system and its default probe live on Node 1, an external probe lives on Node 2, and each node cross-monitors the other over the network.
+> **Start with the installation guide:** [Setting Up Distributed OneUptime Monitoring on Kubernetes](SETTING_UP.md)
 
----
+This project is a two-node Kubernetes reliability lab built around a self-hosted
+OneUptime deployment. It demonstrates cross-node service monitoring, public
+status communication, automatic incident lifecycle management, Telegram
+notifications, and an independent failure-detection path for outages that can
+disable OneUptime itself.
 
-## Table of Contents
+The implementation has been validated with OneUptime `12.0.6` on a dedicated
+two-node Minikube profile named `oneuptime`.
 
-1. [Prerequisites](#1-prerequisites)
-2. [Phase 1 — Provisioning the Cluster](#phase-1--provisioning-the-cluster)
-3. [Phase 2 — Node Labeling](#phase-2--node-labeling)
-4. [Phase 3 — Installing the OneUptime Core System (Node 1)](#phase-3--installing-the-oneuptime-core-system-node-1)
-5. [Phase 4 — Deploying the Second Probe (Node 2)](#phase-4--deploying-the-second-probe-node-2)
-6. [Phase 5 — Cross-Monitoring Configuration](#phase-5--cross-monitoring-configuration)
-7. [Project Summary](#project-summary)
-8. [Deliverables Checklist](#deliverables-checklist)
-9. [Troubleshooting Log](#troubleshooting-log)
+## Project Goals
 
----
+The project addresses two related reliability questions:
 
-## 1. Prerequisites
+1. Can a service on one Kubernetes node detect a failure on the other node?
+2. Can operators still receive an alert when the monitoring platform itself is
+   unavailable?
 
-Confirm the following tools are installed locally before starting:
+To answer both, the cluster uses two OneUptime probes for cross-monitoring and a
+separate watchdog on Node 2 for monitoring the OneUptime Core application on
+Node 1.
 
-```bash
-docker --version
-minikube version
-kubectl version --client
-helm version
-```
+## Architecture
 
----
-
-## Phase 1 — Provisioning the Cluster
-
-### 1.1 Clean up any previous cluster (if applicable)
-
-```bash
-minikube delete --all
-```
-
-### 1.2 Start a two-node cluster with sufficient resources
-
-```bash
-minikube start --nodes 2 --memory=8192 --cpus=4
-```
-
-> The `--memory` and `--cpus` flags are set explicitly to avoid resource-starvation symptoms such as `TLS handshake timeout` on the API server, which can occur on default (lightweight) minikube profiles.
-
-### 1.3 Verify
-
-```bash
-kubectl get nodes
-```
-
-Both nodes should report `Ready`:
-
-```
-NAME           STATUS   ROLES           AGE   VERSION
-minikube       Ready    control-plane   ...   v1.35.1
-minikube-m02   Ready    <none>          ...   v1.35.1
-```
-
-> Node names may differ on your machine. This guide assumes `minikube` and `minikube-m02`; substitute your own node names in every command below if they differ.
-
----
-
-## Phase 2 — Node Labeling
-
-### 2.1 Label each node by role
-
-```bash
-kubectl label nodes minikube app=oneuptime-core
-kubectl label nodes minikube-m02 app=oneuptime-probe
-```
-
-### 2.2 Verify
-
-```bash
-kubectl get nodes --show-labels
-```
-
-Confirm each node carries the correct label in the `LABELS` column. **This output is one of the required deliverables.**
-
----
-
-## Phase 3 — Installing the OneUptime Core System (Node 1)
-
-### 3.1 Add the Helm repository
-
-```bash
-helm repo add oneuptime https://helm-chart.oneuptime.com/
-helm repo update
-```
-
-### 3.2 Create the namespace
-
-```bash
-kubectl create namespace oneuptime
-```
-
-### 3.3 Inspect the chart's default values (optional, but recommended)
-
-```bash
-helm show values oneuptime/oneuptime > default-values.yaml
-grep -n "nodeSelector" default-values.yaml
-```
-
-This reveals the exact structure each `nodeSelector` field expects (e.g. `postgresql.primary.nodeSelector`, `redis.master.nodeSelector`), which varies by sub-component.
-
-### 3.4 Build `values.yaml`
-
-This file pins the core components to Node 1, disables heavy/unnecessary components (ClickHouse, KEDA), and sets the correct host/port so the local dashboard can be reached.
-
-```bash
-cat > values.yaml << 'EOF'
-host: "localhost:8080"
-httpProtocol: http
-
-# Disable components that are unnecessary for this exercise
-clickhouse:
-  enabled: false
-
-keda:
-  enabled: false
-
-# Pin core components to Node 1
-nginx:
-  nodeSelector:
-    app: oneuptime-core
-
-postgresql:
-  primary:
-    nodeSelector:
-      app: oneuptime-core
-
-redis:
-  master:
-    nodeSelector:
-      app: oneuptime-core
-
-app:
-  nodeSelector:
-    app: oneuptime-core
-
-worker:
-  nodeSelector:
-    app: oneuptime-core
-
-migrate:
-  nodeSelector:
-    app: oneuptime-core
-
-probes:
-  one:
-    nodeSelector:
-      app: oneuptime-core
-EOF
-```
-
-### 3.5 Install the chart
-
-```bash
-helm install oneuptime oneuptime/oneuptime -n oneuptime -f values.yaml
-```
-
-Expected output: `STATUS: deployed`
-
-### 3.6 Confirm pods are running
-
-```bash
-kubectl get pods -n oneuptime -w
-```
-
-> Pod startup can take a few minutes depending on your internet connection (large images need to be pulled). This is a good moment for a coffee break.
-
-```bash
-kubectl get pods -n oneuptime -o wide
-```
-
-Confirm every pod's `NODE` column reads `minikube` (Node 1). **This output is one of the required deliverables.**
-
----
-
-## Phase 4 — Deploying the Second Probe (Node 2)
-
-### 4.1 Access the dashboard via port-forward
-
-Verify the service:
-
-```bash
-kubectl get svc -n oneuptime oneuptime-nginx
-```
-
-In a **separate terminal tab** (this one will stay open, running in the foreground):
-
-```bash
-kubectl port-forward svc/oneuptime-nginx 8080:80 -n oneuptime
-```
-
-Open in your browser:
-
-```
-http://localhost:8080
-```
-
-To register directly, navigate to:
-
-```
-http://localhost:8080/accounts/register
-```
-
-### 4.2 Create an account / sign in
-
-Register a new account from the sign-up screen and log in.
-
-> `host: "localhost:8080"` and `httpProtocol: http` in `values.yaml` are what prevent a `Network Error` during registration — if you see one, double-check these two fields.
-
-### 4.3 Retrieve the Probe Key
-
-- Navigate to **Project → Products → Monitor → Probes** (the "Probes" tab sits at the bottom of the Monitor sidebar)
-- Click **"Add Probe"**
-- Name it `External-Probe-Node2`
-- Create it, then copy the generated **Probe Key**
-
-### 4.4 Create `probe2-values.yaml`
-
-Using the real key retrieved from the dashboard:
-
-```bash
-cat > probe2-values.yaml << 'EOF'
-probes:
-  two:
-    name: "External-Probe-Node2"
-    description: "Probe 2 on Node 2"
-    enabled: true
-    monitoringWorkers: 3
-    monitorFetchLimit: 10
-    key: ""   # leave blank — the chart self-registers the probe automatically
-    replicaCount: 1
-    ports:
-      http: 3874
-    nodeSelector:
-      app: oneuptime-probe
-EOF
-```
-
-> **Important:** leave `key` blank, exactly like `probes.one`. Manually copying a key generated via the dashboard's "Create Probe" button creates a *Custom Probe* record — a different registration path that will collide with the chart's own auto-registration flow and produce an `already exists` error on boot. Letting the field stay empty allows the probe pod to self-register cleanly, the same way the default probe does.
-
-### 4.5 Upgrade the release to add the second probe
-
-```bash
-helm upgrade oneuptime oneuptime/oneuptime -n oneuptime -f values.yaml -f probe2-values.yaml
-```
-
-> Both values files must be supplied together — omitting `values.yaml` would reset previously applied settings (disabled components, node placement, etc.).
-
-### 4.6 Verify placement
-
-```bash
-kubectl get pods -n oneuptime -o wide
-```
-
-Confirm the new `oneuptime-probe-two-...` pod's `NODE` column reads `minikube-m02` (Node 2).
-
-**Actual result:**
-
-```
-NAME                                    READY   STATUS    RESTARTS   AGE   NODE
-oneuptime-probe-one-77f6b787b7-gx9r8    1/1     Running   0          47s   minikube
-oneuptime-probe-two-57c685c7ff-wqmhf    1/1     Running   0          71s   minikube-m02
-```
-
-✅ `probe-one` → Node 1, `probe-two` → Node 2. This satisfies the Phase 4 placement requirement.
-
----
-
-## Phase 5 — Cross-Monitoring Configuration
-
-### 5.1 Confirm both probes report Online
-
-Dashboard → **Probes** page:
-
-- `Probe` (Node 1, default) → **Connected/Online** ✅
-- `External-Probe-Node2` (Node 2) → **Connected/Online** ✅
-
-The screenshot below (taken from a monitor's **Probes** tab) confirms both probes are registered and connected:
-
-![Both probes connected](img/monitor-probes-connected.png)
-*Both the default probe (Node 1) and External-Probe-Node2 (Node 2) report "Connected".*
-
-### 5.2 Create a lightweight target on Node 2
-
-```bash
-kubectl run nginx-target --image=nginx --overrides='{"spec": {"nodeSelector": {"app": "oneuptime-probe"}}}' -n oneuptime
-kubectl expose pod nginx-target --port=80 --name=nginx-target-svc -n oneuptime
-```
-
-**Verify:**
-
-```bash
-kubectl get pods -n oneuptime -o wide | grep nginx-target
-kubectl get svc -n oneuptime nginx-target-svc
-```
-
-Confirm `nginx-target`'s `NODE` column reads `minikube-m02` (Node 2).
-
-### 5.3 Create Monitor 1: Node 1's probe → watches Node 2
-
-Dashboard → **Monitors → Create Monitor**:
-
-| Field | Value |
-|---|---|
-| Monitor Type | Website |
-| Monitor Name | `Node2-Nginx-Health-Check` |
-| URL | `http://nginx-target-svc.oneuptime.svc.cluster.local` |
-| Probe | **Probe** (Node 1, default) |
-
-✅ This monitor lets **Node 1's probe check Node 2's reachability** over the network.
-
-Once the check runs, the monitor's summary confirms the probe used and a successful response:
-
-![Node 2 monitor summary](img/monitor-node2-nginx-summary.png)
-*`Node2-Nginx-Health-Check` — served by "Probe" (Node 1), HTTP 200 in 3 ms against `nginx-target-svc`.*
-
-### 5.4 Create Monitor 2: Node 2's probe → watches Node 1
-
-Dashboard → **Monitors → Create Monitor**:
-
-| Field | Value |
-|---|---|
-| Monitor Type | Website |
-| Monitor Name | `Node1-App-Health-Check` |
-| URL | `http://oneuptime-app.oneuptime.svc.cluster.local:3002/status/live` |
-| Probe | **External-Probe-Node2** |
-
-✅ This monitor lets **Node 2's probe check the core system's health** on Node 1.
-
-> `/status/live` is the same health-check path already used internally by the chart's `startupProbe`/`livenessProbe` definitions (confirmed during earlier OOM/probe log analysis), making it the correct endpoint for verifying the core system's health.
-
-The monitor summary below confirms it is served by `External-Probe-Node2` and receiving a healthy response from Node 1:
-
-![Node 1 monitor summary](img/monitor-node1-app-summary.png)
-*`Node1-App-Health-Check` — served by "External-Probe-Node2" (Node 2), HTTP 200 in 8 ms against the core app's `/status/live` endpoint.*
-
-### 5.5 Final verification
-
-Both monitors were opened individually and confirmed:
-
-- **Status**: `Operational` / `Online`
-- **Monitor Events / Evaluation Logs** show successful, passing checks
-
-✅ The cross-monitoring topology is complete: Node 1 and Node 2 monitor each other bidirectionally, exactly as required.
-
----
-
-## Project Summary
-
-| Requirement | Status |
-|---|---|
-| Two-node Kubernetes cluster (minikube) | ✅ Done |
-| Node labeling (`oneuptime-core` / `oneuptime-probe`) | ✅ Done |
-| Core system + default probe → Node 1 | ✅ Done |
-| Second (external) probe → Node 2 | ✅ Done |
-| Both probes report Online | ✅ Done |
-| Cross-monitoring (Node 1 ↔ Node 2) | ✅ Done |
-
----
-
-## Deliverables Checklist
-
-1. **Terminal output:**
-   - `kubectl get nodes --show-labels`
-   - `kubectl get pods -n oneuptime -o wide`
-2. **Dashboard screenshots:**
-   - Both probes listed as "Online" (Probes page) — see [5.1](#51-confirm-both-probes-report-online)
-   - `Node2-Nginx-Health-Check` and `Node1-App-Health-Check` monitor detail/summary pages — see [5.3](#53-create-monitor-1-node-1s-probe--watches-node-2) and [5.4](#54-create-monitor-2-node-2s-probe--watches-node-1)
-3. **Issues encountered and resolutions** — see below
-
----
-
-## Troubleshooting Log
-
-| Issue | Root Cause | Resolution |
+| Location | Main workloads | Responsibility |
 |---|---|---|
-| `Request failed to http://localhost/identity/signup. Network Error` | Chart's `host` value was portless (`localhost`) while the app was accessed on `:8080` | Added `host: "localhost:8080"` and `httpProtocol: http` to `values.yaml` |
-| Namespace/pods refuse to delete cleanly / cluster becomes unusable | Accumulated crash loops and resource exhaustion | Full reset via `minikube delete --all`, followed by a clean install with adequate resources |
-| `oneuptime-migrate` job `OOMKilled` | The chart hard-codes `NODE_OPTIONS=--max-old-space-size=8096` (an 8 GB heap ceiling); this value cannot be overridden through `values.yaml` (no `env` field is exposed for this job), and total node memory was insufficient | Increased Docker Desktop's memory allocation and started nodes with `--memory=8192`; the migration job completed successfully after a few automatic retries (`backoffLimit: 6`) |
-| `app` / `nginx` pods `OOMKilled` during rolling updates | During a rolling update, the old and new pod briefly coexist, temporarily doubling memory demand | Pods self-healed automatically (restart count increased); the durable fix is provisioning enough node memory headroom, and/or switching `deployment.updateStrategy` to a Recreate-equivalent (`maxSurge: 0`, `maxUnavailable: "100%"`) to avoid the overlap entirely |
-| Second probe stuck `Disconnected`, log shows `Probe registration failed: ... already exists` | The probe's `key` field was populated with a key copied from the dashboard's "Create Probe" button — that flow creates a *Custom Probe* record, a separate registration path from the chart's own auto-registration mechanism, causing an ID collision | Removed the conflicting database row directly via `psql`, then redeployed with `probes.two.key` left blank so the pod self-registers exactly like the default probe |
-| Re-adding a probe under the same name after a failure returns a database conflict (`already exists`) | The PostgreSQL StatefulSet's PersistentVolumeClaim survives pod crashes, restarts, and `helm upgrade` operations, so previously registered `Probe` rows remain in the database even after the pod that created them has failed — the leftover row collides with any new probe registered under the same name. This is easy to miss because a *full* teardown (`kubectl delete namespace` or `minikube delete --all`) behaves very differently: it deletes the PVC along with everything else, wiping the database entirely — including user accounts. There is no persistence for the dashboard's user/session data across a full reset, so every full reset requires registering a brand-new account and recreating all monitors and probes from scratch | Before recreating a probe after a pod-level failure, inspect the `Probe` table directly via `psql` and delete the stale row rather than assuming a clean slate; when performing a full cluster reset, plan for re-registering the dashboard account and rebuilding monitors, since none of that data survives the teardown |
+| Node 1 — `oneuptime` | OneUptime Core, ClickHouse, PostgreSQL, Redis, KEDA, Runner, Probe One | Hosts the monitoring platform and checks the Node 2 Nginx target |
+| Node 2 — `oneuptime-m02` | Probe Two, Nginx target, independent watchdog | Checks OneUptime Core and provides an out-of-band Core failure alert path |
 
-> **Note:** `minikube delete --all` only removes the cluster (containers, nodes, pods); local files such as `values.yaml` remain on disk and can be reused as-is on the next install.
+The node labels make placement explicit:
 
-> **General lesson learned:** This chart's schema validation (`values.schema.json`) is strict — fields like `env`/`NODE_OPTIONS` are not exposed for override on any service; only standard Kubernetes fields such as `resources`, `nodeSelector`, `tolerations`, and `affinity` can be customized. As a result, the most reliable way to resolve memory-related failures was to increase the node's total physical resources rather than attempting to tune in-container settings that the chart does not expose.
+```text
+oneuptime       app=oneuptime-core
+oneuptime-m02   app=oneuptime-probe
+```
+
+```mermaid
+flowchart LR
+    TG[Telegram]
+    SP[Public Status Page]
+
+    subgraph N1[Node 1 — oneuptime]
+        CORE[OneUptime Core]
+        P1[Probe One]
+        WF[Incident and Recovery Workflows]
+    end
+
+    subgraph N2[Node 2 — oneuptime-m02]
+        P2[Probe Two]
+        NG[nginx-target]
+        WD[node1-watchdog]
+    end
+
+    P1 -->|HTTP check| NG
+    P2 -->|/status/live| CORE
+    CORE --> SP
+    CORE --> WF
+    WF -->|INCIDENT / RECOVERED| TG
+    WD -->|Direct ClusterIP health check| CORE
+    WD -->|WATCHDOG DOWN / RECOVERED| TG
+```
+
+## Cross-Monitoring Model
+
+Two HTTP monitors provide bidirectional coverage:
+
+| Monitor | Executing probe | Target |
+|---|---|---|
+| `Node2-Nginx-Health-Check` | Probe One on Node 1 | `http://nginx-target-svc.oneuptime.svc.cluster.local` |
+| `Node1-App-Health-Check` | Probe Two on Node 2 | `http://oneuptime-app.oneuptime.svc.cluster.local:3002/status/live` |
+
+The `nginx-target` pod is a deliberately simple test workload. It is deployed
+manually with `kubectl` and is not part of the OneUptime Helm release. This makes
+it suitable for controlled failure and recovery exercises without modifying the
+monitoring platform.
+
+For a detailed explanation of Kubernetes service discovery and the request path
+between nodes, see [Cross-Monitoring Traffic](CROSS_MONITORING_TRAFFIC.md).
+
+## Status and Incident Management
+
+Both monitors are published on a local, password-free Status Page named
+`OneUptime Cross-Monitoring Status` under the `Cross-Monitoring Services` group.
+The page displays current health, uptime history, and public incidents.
+
+Monitor failures are evaluated with the following rule:
+
+```text
+Is Online = False OR Response Status Code != 200
+```
+
+The failure behavior is intentionally different for each monitored resource:
+
+| Resource | Incident severity | Incident title |
+|---|---|---|
+| Node 1 OneUptime Core | Critical | `[Cross-Monitoring] Node 1 OneUptime Core erişilemiyor` |
+| Node 2 Nginx target | Major | `[Cross-Monitoring] Node 2 Nginx Target erişilemiyor` |
+
+When the target returns HTTP `200`, its monitor becomes Operational again and
+the associated incident is automatically resolved.
+
+## Telegram Workflow Automation
+
+Two imported OneUptime workflows automate the incident notification lifecycle:
+
+- `Cross-Monitoring Incident → Telegram` runs when an incident is created.
+- `Cross-Monitoring Recovery → Telegram` runs when an incident is updated to a
+  resolved state.
+
+Both workflows first restrict processing to incident titles beginning with
+`[Cross-Monitoring]`. Telegram credentials are selected from secret OneUptime
+Global Variables rather than embedded in workflow definitions.
+
+```mermaid
+flowchart TD
+    F[Probe detects a failed check]
+    M[Monitor becomes Offline]
+    I[Incident is created]
+    S[Status Page shows the outage]
+    W1[On Create Incident workflow]
+    T1[Telegram: INCIDENT]
+    R[Target returns HTTP 200]
+    A[Incident auto-resolves]
+    W2[On Update Incident workflow]
+    T2[Telegram: RECOVERED]
+
+    F --> M --> I
+    I --> S
+    I --> W1 --> T1
+    R --> A --> W2 --> T2
+```
+
+The importable workflow definitions are stored in:
+
+- [Incident workflow JSON](workflows/oneuptime-incident-telegram-workflow.json)
+- [Recovery workflow JSON](workflows/oneuptime-recovery-telegram-workflow.json)
+
+## Independent Core Watchdog
+
+A OneUptime workflow cannot be treated as the only alerting path for a complete
+OneUptime Core outage: if Core is unavailable, incident evaluation and workflow
+execution may also be unavailable.
+
+The [Node 1 watchdog](node1-watchdog.yaml) therefore runs independently on Node
+2 and checks the Core live endpoint every 30 seconds. It uses the
+`ONEUPTIME_APP_SERVICE_HOST` ClusterIP environment variable instead of cluster
+DNS for the Core target and uses independent external DNS resolvers for the
+Telegram API.
+
+Its state machine is designed to prevent alert noise:
+
+- Three consecutive failures change the state to `DOWN` and send
+  `[WATCHDOG] DOWN`.
+- Additional failures are suppressed while the state remains `DOWN`.
+- Two consecutive successful checks return the state to `UP` and send
+  `[WATCHDOG] RECOVERED`.
+
+Telegram values are loaded from the `oneuptime-watchdog-telegram` Kubernetes
+Secret. The manifest contains no real token or Chat ID.
+
+## Validated Failure Scenarios
+
+### Node 2 Nginx outage
+
+The manually managed `nginx-target` pod was removed while its Service remained
+in place. The observed lifecycle was:
+
+```text
+Nginx endpoint unavailable
+→ Probe One detects failure
+→ Node 2 monitor becomes Offline
+→ Major incident appears on the Status Page
+→ Telegram receives [INCIDENT]
+→ Nginx pod is recreated on Node 2
+→ Monitor becomes Operational
+→ Incident auto-resolves
+→ Telegram receives [RECOVERED]
+```
+
+### Node 1 OneUptime Core outage
+
+The `oneuptime-app` Deployment was safely scaled to zero without stopping the
+Minikube control-plane node. The Node 2 watchdog sent `[WATCHDOG] DOWN` after its
+failure threshold. After the Deployment was restored to one replica, the
+watchdog sent `[WATCHDOG] RECOVERED` following two successful checks.
+
+These tests confirm both the platform-managed incident path and the independent
+fallback path.
+
+## Configuration Strategy
+
+The Helm configuration is intentionally split into two phases:
+
+| File | Purpose |
+|---|---|
+| [`values.yaml`](values.yaml) | Base installation: OneUptime Core, dependencies, Runner, and Probe One |
+| [`probe2-values.yaml`](probe2-values.yaml) | Second-stage overlay for Probe Two after a fresh Probe Key is generated |
+| [`all.yaml`](all.yaml) | Final merged reference snapshot of the two values files |
+
+The normal deployment sequence uses `values.yaml` first. After the dashboard is
+available, a new Probe Two record and key are created, and Helm is upgraded with
+both `values.yaml` and `probe2-values.yaml`.
+
+Probe keys, Telegram tokens, Chat IDs, and rendered Kubernetes Secret values
+must never be committed to the repository.
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| [Setting Up the Project](SETTING_UP.md) | Complete Minikube, Helm, probe, and cross-monitoring installation guide |
+| [Operational Guide](docs/instructions/README.md) | End-to-end Status Page, incident, workflow, Telegram, watchdog, and testing overview |
+| [Stages 1–13](docs/instructions/01-13-uygulama-sirasi.md) | Ordered implementation and acceptance sequence |
+| [Cross-Monitoring Traffic](CROSS_MONITORING_TRAFFIC.md) | Kubernetes DNS names, Services, endpoints, and inter-node traffic flow |
+| [Minikube Start and Stop](MINIKUBE_START_STOP.md) | Safe lifecycle operations for the dedicated `oneuptime` profile |
+
+The detailed operational documentation includes numbered UI evidence and
+sanitized expected terminal output. No live Telegram credentials are included.
+
+## Repository Layout
+
+```text
+.
+├── README.md
+├── SETTING_UP.md
+├── values.yaml
+├── probe2-values.yaml
+├── all.yaml
+├── node1-watchdog.yaml
+├── workflows/
+│   ├── oneuptime-incident-telegram-workflow.json
+│   └── oneuptime-recovery-telegram-workflow.json
+└── docs/instructions/
+    ├── README.md
+    ├── 01-13-uygulama-sirasi.md
+    ├── 01-telegram-botu-ve-chat-id.md
+    ├── ...
+    └── 13-son-kabul-kontrolleri.md
+```
+
+## Security Notes
+
+- Store OneUptime workflow credentials as secret Global Variables.
+- Store watchdog credentials in a Kubernetes Secret referenced through
+  `secretKeyRef`.
+- Never publish `kubectl get secret ... -o yaml` output.
+- Treat Base64-encoded Kubernetes Secret data as sensitive; Base64 is not
+  encryption.
+- Revoke and rotate a Telegram bot token immediately if it is exposed in chat,
+  Git history, logs, or screenshots.
+- Review documentation images for usernames, project identifiers, tokens, and
+  Chat IDs before publishing them.
+
+## Project Outcome
+
+The resulting environment provides a complete local reliability demonstration:
+cross-node health checks, public service status, automatic incident creation and
+resolution, workflow-driven Telegram notifications, and a separate watchdog
+that continues to alert when the monitoring application itself is unavailable.

@@ -1,0 +1,102 @@
+{
+  "fileType": "oneuptime-resource-export",
+  "schemaVersion": 1,
+  "resourceType": "Workflow",
+  "exportedAt": "2026-08-11T20:00:00.000Z",
+  "items": [
+    {
+      "name": "Cross-Monitoring Incident → Telegram (JSON)",
+      "description": "Cross-monitoring incident oluşturulduğunda kişisel Telegram sohbetine Türkçe bildirim gönderir.",
+      "isEnabled": false,
+      "graph": {
+        "nodes": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "type": "node",
+            "position": {
+              "x": 80,
+              "y": 180
+            },
+            "selected": false,
+            "data": {
+              "nodeType": "Node",
+              "id": "incident-on-create-1",
+              "error": "",
+              "metadataId": "incident-on-create",
+              "internalId": "11111111-1111-4111-8111-111111111112",
+              "componentType": "Trigger",
+              "arguments": {
+                "select": "{\"title\":true,\"description\":true,\"declaredAt\":true,\"incidentSeverity\":{\"name\":true}}"
+              },
+              "returnValues": {}
+            }
+          },
+          {
+            "id": "22222222-2222-4222-8222-222222222221",
+            "type": "node",
+            "position": {
+              "x": 480,
+              "y": 180
+            },
+            "selected": false,
+            "data": {
+              "nodeType": "Node",
+              "id": "if-else-1",
+              "error": "",
+              "metadataId": "if-else",
+              "internalId": "22222222-2222-4222-8222-222222222222",
+              "componentType": "Component",
+              "arguments": {
+                "input-1-type": "text",
+                "input-1": "{{local.components.incident-on-create-1.returnValues.model.title}}",
+                "operator": "starts with",
+                "input-2-type": "text",
+                "input-2": "[Cross-Monitoring]"
+              },
+              "returnValues": {}
+            }
+          },
+          {
+            "id": "33333333-3333-4333-8333-333333333331",
+            "type": "node",
+            "position": {
+              "x": 880,
+              "y": 80
+            },
+            "selected": false,
+            "data": {
+              "nodeType": "Node",
+              "id": "telegram-send-message-to-chat-1",
+              "error": "",
+              "metadataId": "telegram-send-message-to-chat",
+              "internalId": "33333333-3333-4333-8333-333333333332",
+              "componentType": "Component",
+              "arguments": {
+                "bot-token": "{{global.variables.TELEGRAM_BOT_TOKEN}}",
+                "chat-id": "{{global.variables.TELEGRAM_CHAT_ID}}",
+                "text": "[INCIDENT]\nBaşlık: {{local.components.incident-on-create-1.returnValues.model.title}}\nAçıklama: {{local.components.incident-on-create-1.returnValues.model.description}}\nÖnem derecesi: {{local.components.incident-on-create-1.returnValues.model.incidentSeverity.name}}\nZaman: {{local.components.incident-on-create-1.returnValues.model.declaredAt.value}}"
+              },
+              "returnValues": {}
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "edge-incident-created-to-title-check",
+            "source": "11111111-1111-4111-8111-111111111111",
+            "sourceHandle": "success",
+            "target": "22222222-2222-4222-8222-222222222221",
+            "targetHandle": "in"
+          },
+          {
+            "id": "edge-title-check-yes-to-telegram",
+            "source": "22222222-2222-4222-8222-222222222221",
+            "sourceHandle": "yes",
+            "target": "33333333-3333-4333-8333-333333333331",
+            "targetHandle": "in"
+          }
+        ]
+      }
+    }
+  ]
+}
