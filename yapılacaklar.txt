@@ -1,5 +1,0 @@
-yani yarın ilk iş md dosyalarını gozden geçirmek olacak ayrıca mimariyi de bi incelememiz lazım sonrasında projeyi buyuk ihtimalle bir daha açamam o yüzden istenen fotolara son bi ke
-bir kere daha bakacağım
-sonra minikube stop edip yarın işte başka bir işe bakacağım
-
-devam letst go 
