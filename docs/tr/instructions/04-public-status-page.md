@@ -22,23 +22,25 @@ olacaktır. İnternete açık bir custom domain kurulmaz.
 Ayrı bir terminal sekmesinde port-forward başlatın ve terminali açık bırakın:
 
 ```bash
-kubectl port-forward svc/oneuptime-nginx 8080:80 -n oneuptime
+./scripts/port-forward-https.sh
 ```
 
 Beklenen terminal çıktısı:
 
 ```text
-Forwarding from 127.0.0.1:8080 -> 80
-Forwarding from [::1]:8080 -> 80
+Forwarding from 127.0.0.1:80 -> 8080
+Forwarding from [::1]:80 -> 8080
+Forwarding from 127.0.0.1:443 -> 8443
+Forwarding from [::1]:443 -> 8443
 ```
 
-Tarayıcıdan istek geldikçe terminalde `Handling connection for 8080` satırı
+Tarayıcıdan istek geldikçe terminalde `Handling connection for 443` satırı
 görülebilir. Bu komut çalıştığı sürece terminal oturumu açık bırakılmalıdır.
 
 Tarayıcıdan şu adresi açın:
 
 ```text
-http://localhost:8080
+https://oneuptime.furkan.test
 ```
 
 Port-forward yalnızca bilgisayardan arayüze erişim sağlar. Cluster içindeki probe

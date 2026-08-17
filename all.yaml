@@ -2,8 +2,8 @@
 # This file must remain equivalent to: values.yaml + probe2-values.yaml.
 # Replace the Probe Two key before using this file directly.
 
-host: "localhost:8080"
-httpProtocol: http
+host: "oneuptime.furkan.test"
+httpProtocol: https
 
 image:
   pullPolicy: IfNotPresent

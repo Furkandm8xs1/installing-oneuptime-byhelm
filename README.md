@@ -2,6 +2,16 @@
 
 > **Start with the installation guide:** [Setting Up Distributed OneUptime Monitoring on Kubernetes](SETTING_UP.md)
 
+Local dashboard address:
+
+```text
+https://oneuptime.furkan.test
+```
+
+After the cluster starts, run `./scripts/port-forward-https.sh` in a separate
+terminal. Entering only `oneuptime.furkan.test` in the browser is also supported;
+HTTP port 80 redirects permanently to HTTPS port 443.
+
 This project is a two-node Kubernetes reliability lab built around a self-hosted
 OneUptime deployment. It demonstrates cross-node service monitoring, public
 status communication, automatic incident lifecycle management, Telegram
@@ -212,6 +222,7 @@ must never be committed to the repository.
 | Document | Purpose |
 |---|---|
 | [Setting Up the Project](SETTING_UP.md) | Complete Minikube, Helm, probe, and cross-monitoring installation guide |
+| [Local HTTPS and TLS](docs/tr/kurulum/LOCAL_HTTPS.md) | Trusted localhost certificate, TLS proxy, and HTTPS port-forward guide |
 | [Operational Guide](docs/instructions/README.md) | End-to-end Status Page, incident, workflow, Telegram, watchdog, and testing overview |
 | [Stages 1–13](docs/instructions/01-13-uygulama-sirasi.md) | Ordered implementation and acceptance sequence |
 | [Cross-Monitoring Traffic](CROSS_MONITORING_TRAFFIC.md) | Kubernetes DNS names, Services, endpoints, and inter-node traffic flow |
@@ -230,6 +241,13 @@ sanitized expected terminal output. No live Telegram credentials are included.
 ├── probe2-values.yaml
 ├── all.yaml
 ├── node1-watchdog.yaml
+├── k8s/local-tls/
+│   ├── kustomization.yaml
+│   ├── nginx.conf
+│   └── proxy.yaml
+├── scripts/
+│   ├── setup-local-https.sh
+│   └── port-forward-https.sh
 ├── workflows/
 │   ├── oneuptime-incident-telegram-workflow.json
 │   └── oneuptime-recovery-telegram-workflow.json

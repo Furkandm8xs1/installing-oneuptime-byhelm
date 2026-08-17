@@ -117,8 +117,8 @@ Bu, her `nodeSelector` alanının beklediği yapıyı gösterir. Örneğin `post
 
 ```bash
 cat > values.yaml << 'EOF'
-host: "localhost:8080"
-httpProtocol: http
+host: "oneuptime.furkan.test"
+httpProtocol: https
 
 image:
   pullPolicy: IfNotPresent
@@ -203,6 +203,19 @@ kubectl get pods -n oneuptime -o wide
 
 Çekirdek pod’ların ve `oneuptime-probe-one` pod’unun `NODE` sütununda `oneuptime` (Node 1) göründüğünü doğrulayın. **Bu çıktı gerekli teslimatlardan biridir.**
 
+### 3.7 Yerel HTTPS'yi etkinleştirin
+
+Yerel sertifikayı üretmek, TLS proxy'yi dağıtmak ve CA'yı macOS kullanıcı
+anahtar zincirine güvenilir olarak eklemek için proje kökünde çalıştırın:
+
+```bash
+./scripts/setup-local-https.sh --trust
+```
+
+Özel anahtarlar Git tarafından yok sayılan `k8s/local-tls/certs/` dizininde
+kalır. Ayrıntılar için [Yerel HTTPS ve TLS Sertifikası](LOCAL_HTTPS.md)
+rehberine bakın.
+
 ---
 
 ## Aşama 4 — İkinci Probe’un Dağıtılması (Node 2)
@@ -212,32 +225,34 @@ kubectl get pods -n oneuptime -o wide
 Servisi doğrulayın:
 
 ```bash
-kubectl get svc -n oneuptime oneuptime-nginx
+kubectl get svc -n oneuptime oneuptime-local-tls
 ```
 
 Başka bir terminal sekmesinde aşağıdaki komutu çalıştırın; bu sekme açık kalacaktır:
 
 ```bash
-kubectl port-forward svc/oneuptime-nginx 8080:80 -n oneuptime
+./scripts/port-forward-https.sh
 ```
 
 Tarayıcıda şu adresi açın:
 
 ```text
-http://localhost:8080
+https://oneuptime.furkan.test
 ```
 
 Doğrudan kayıt için şu adresi açın:
 
 ```text
-http://localhost:8080/accounts/register
+https://oneuptime.furkan.test/accounts/register
 ```
 
 ### 4.2 Hesap oluşturun / oturum açın
 
 Kayıt ekranından yeni bir hesap oluşturun ve giriş yapın.
 
-> `values.yaml` içindeki `host: "localhost:8080"` ve `httpProtocol: http` ayarları, kayıt sırasında görülebilen `Network Error` hatasını önler. Böyle bir hata görürseniz önce bu iki alanı kontrol edin.
+> `values.yaml` içindeki `host: "oneuptime.furkan.test"` ve `httpProtocol: https`
+> değerleri tarayıcı adresiyle aynı olmalıdır. Şema veya port farkı kayıt
+> sırasında `Network Error` oluşturabilir.
 
 ### 4.3 Probe Key alın
 
@@ -408,7 +423,7 @@ _`Node1-App-Health-Check` — “External-Probe-Node2” (Node 2) tarafından se
 
 | Sorun                                                                                | Kök Neden                                                                                                                                                                                                     | Çözüm                                                                                                                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Request failed to http://localhost/identity/signup. Network Error`                  | Chart’ın `host` değeri port içermiyordu (`localhost`), ancak uygulama `:8080` üzerinden açıldı                                                                                                                | `values.yaml` içine `host: "localhost:8080"` ve `httpProtocol: http` eklendi                                                                                                                                                                                             |
+| Kayıt isteği `Network Error` döndürüyor                                             | Tarayıcı URL'si ile chart'ın şema/host değeri farklı                                                                                                                                                          | `https://oneuptime.furkan.test` kullanıldı; `host: "oneuptime.furkan.test"` ve `httpProtocol: https` ayarlandı                                                                                                                                                            |
 | Namespace/pod’lar düzgün silinmiyor / küme kullanılamaz hale geliyor                 | Biriken crash loop’lar ve kaynak tükenmesi                                                                                                                                                                    | Sadece bu proje `minikube delete -p oneuptime` ile sıfırlandı, ardından yeterli kaynakla yeni profil oluşturuldu                                                                                                                                                         |
 | `oneuptime-migrate` işi `OOMKilled` oldu                                             | Chart, `NODE_OPTIONS=--max-old-space-size=8096` değerini sabitler (8 GB heap sınırı); bu değer `values.yaml` ile değiştirilemez (bu iş için `env` alanı açılmamış) ve toplam düğüm belleği yetersiz kalıyordu | Docker Desktop bellek tahsisi artırıldı ve düğümler `--memory=8192` ile başlatıldı; migration işi birkaç otomatik denemeden sonra (`backoffLimit: 6`) başarıyla tamamlandı                                                                                               |
 | `app` / `nginx` pod’ları rolling update sırasında `OOMKilled` oldu                   | Rolling update sırasında eski ve yeni pod kısa süreli birlikte çalışır; bu da geçici olarak bellek ihtiyacını artırır                                                                                         | Pod’lar kendi kendine toparlandı (restart sayısı arttı); kalıcı çözüm, yeterli düğüm belleği sağlamak ve/veya `deployment.updateStrategy` değerini Recreate benzeri bir ayara almak (`maxSurge: 0`, `maxUnavailable: "100%"`)                                            |

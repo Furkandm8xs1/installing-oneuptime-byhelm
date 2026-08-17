@@ -22,7 +22,7 @@ Uygulama sırasında her aşama tek tek anlatılacak ve siz tamamladığınızı
 ### 2. Public Status Page
 
 - Sayfa adı: `OneUptime Cross-Monitoring Status`
-- Erişim: public, parolasız; `localhost:8080` ve port-forward üzerinden yerel erişim
+- Erişim: public, parolasız; `https://oneuptime.furkan.test` ve TLS port-forward üzerinden yerel erişim
 - Tek grup: `Cross-Monitoring Services`
 - Kaynaklar:
   - `Node 1 – OneUptime Core` → `Node1-App-Health-Check`

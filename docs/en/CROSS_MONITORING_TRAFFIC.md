@@ -262,11 +262,12 @@ nedeni budur.
 ## 8. Port-forward bu trafiğin neresindedir?
 
 ```text
-Mac tarayıcısı → localhost:8080 → kubectl port-forward → oneuptime-nginx
+Mac tarayıcısı → https://oneuptime.furkan.test → kubectl port-forward
+→ oneuptime-local-tls → oneuptime-nginx
 ```
 
 Port-forward yalnızca kullanıcının dashboard'a erişmesi içindir. İki probe'un
-monitor istekleri `localhost:8080` üzerinden gitmez. Probe'lar cluster içinde
+monitor istekleri `oneuptime.furkan.test` üzerinden gitmez. Probe'lar cluster içinde
 çalıştığı için Service FQDN'lerini doğrudan çözümler ve hedeflere cluster ağı
 üzerinden bağlanır.
 
@@ -368,8 +369,8 @@ Cross-monitoring başarılı olduğunda şu zincirlerin çalıştığı doğrula
 - Nginx port `80` ve OneUptime App port `3002` HTTP yanıtı vermektedir.
 - Probe sonuçları OneUptime'a dönmekte ve dashboard'da değerlendirilmektedir.
 
-Bu testler dış internet erişimini, public ingress'i, `localhost:8080`
-port-forward'ını veya HTTPS sertifikalarını doğrulamaz. Bunlar ayrı trafik
+Bu testler dış internet erişimini, public ingress'i, `oneuptime.furkan.test`
+port-forward'ını veya yerel HTTPS sertifikasını doğrulamaz. Bunlar ayrı trafik
 yollarıdır.
 
 ## Resmi kaynaklar

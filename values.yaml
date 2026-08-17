@@ -2,8 +2,8 @@
 # This phase starts the OneUptime core and the internal probe on Node 1.
 # Probe Two is intentionally added later, after obtaining a fresh key from the UI.
 
-host: "localhost:8080"
-httpProtocol: http
+host: "oneuptime.furkan.test"
+httpProtocol: https
 
 # Reuse successfully downloaded images during local Minikube restarts.
 image:

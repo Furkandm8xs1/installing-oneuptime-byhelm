@@ -130,8 +130,8 @@ inserted, its key field deliberately contains a placeholder.
 
 ```bash
 cat > values.yaml << 'EOF'
-host: "localhost:8080"
-httpProtocol: http
+host: "oneuptime.furkan.test"
+httpProtocol: https
 
 image:
   pullPolicy: IfNotPresent
@@ -219,41 +219,61 @@ kubectl get pods -n oneuptime -o wide
 Confirm every core pod and `oneuptime-probe-one` has `oneuptime` (Node 1) in
 the `NODE` column. **This output is one of the required deliverables.**
 
+### 3.7 Enable local HTTPS
+
+Generate the `oneuptime.furkan.test` certificate, deploy the TLS proxy, update
+the installed release URL, and trust the local CA in the macOS user keychain:
+
+```bash
+./scripts/setup-local-https.sh --trust
+```
+
+The generated private keys stay under the Git-ignored
+`k8s/local-tls/certs/` directory. See the
+[local HTTPS guide](docs/tr/kurulum/LOCAL_HTTPS.md) for architecture,
+verification, and troubleshooting details.
+
+The setup script also adds `127.0.0.1 oneuptime.furkan.test` to `/etc/hosts`.
+macOS requests administrator authorization for that one-time change and for
+binding the HTTPS port-forward to privileged port 443.
+
 ---
 
 ## Phase 4 — Deploying the Second Probe (Node 2)
 
 ### 4.1 Access the dashboard via port-forward
 
-Verify the service:
+Verify the TLS service:
 
 ```bash
-kubectl get svc -n oneuptime oneuptime-nginx
+kubectl get svc -n oneuptime oneuptime-local-tls
 ```
 
 In a **separate terminal tab** (this one will stay open, running in the foreground):
 
 ```bash
-kubectl port-forward svc/oneuptime-nginx 8080:80 -n oneuptime
+./scripts/port-forward-https.sh
 ```
 
 Open in your browser:
 
 ```
-http://localhost:8080
+https://oneuptime.furkan.test
 ```
 
 To register directly, navigate to:
 
 ```
-http://localhost:8080/accounts/register
+https://oneuptime.furkan.test/accounts/register
 ```
 
 ### 4.2 Create an account / sign in
 
 Register a new account from the sign-up screen and log in.
 
-> `host: "localhost:8080"` and `httpProtocol: http` in `values.yaml` are what prevent a `Network Error` during registration — if you see one, double-check these two fields.
+> `host: "oneuptime.furkan.test"` and `httpProtocol: https` in `values.yaml` must
+> match the browser URL. A scheme or port mismatch can cause a `Network Error`
+> during registration.
 
 ### 4.3 Retrieve the Probe Key
 
@@ -314,16 +334,16 @@ The Helm upgrade can recreate application or Nginx pods, which may close the
 previous port-forward session. In a separate terminal tab, start it again:
 
 ```bash
-kubectl port-forward svc/oneuptime-nginx 8080:80 -n oneuptime
+./scripts/port-forward-https.sh
 ```
 
 Then reopen or refresh:
 
 ```text
-http://localhost:8080
+https://oneuptime.furkan.test
 ```
 
-Keep the port-forward terminal running. If the command reports that port `8080`
+Keep the port-forward terminal running. If the command reports that port `443`
 is already in use, the previous port-forward is still active; keep using that
 session instead of starting a second one.
 
@@ -475,7 +495,7 @@ Both monitors were opened individually and confirmed:
 
 | Issue | Root Cause | Resolution |
 |---|---|---|
-| `Request failed to http://localhost/identity/signup. Network Error` | Chart's `host` value was portless (`localhost`) while the app was accessed on `:8080` | Added `host: "localhost:8080"` and `httpProtocol: http` to `values.yaml` |
+| Registration request returns `Network Error` | Browser URL and the chart's scheme/host differ | Use `https://oneuptime.furkan.test`; set `host: "oneuptime.furkan.test"` and `httpProtocol: https` |
 | Namespace/pods refuse to delete cleanly / cluster becomes unusable | Accumulated crash loops and resource exhaustion | Reset only this project via `minikube delete -p oneuptime`, then recreate the named profile with adequate resources |
 | `oneuptime-migrate` job `OOMKilled` | The chart hard-codes `NODE_OPTIONS=--max-old-space-size=8096` (an 8 GB heap ceiling); this value cannot be overridden through `values.yaml` (no `env` field is exposed for this job), and total node memory was insufficient | Increased Docker Desktop's memory allocation and started nodes with `--memory=8192`; the migration job completed successfully after a few automatic retries (`backoffLimit: 6`) |
 | `app` / `nginx` pods `OOMKilled` during rolling updates | During a rolling update, the old and new pod briefly coexist, temporarily doubling memory demand | Pods self-healed automatically (restart count increased); the durable fix is provisioning enough node memory headroom, and/or switching `deployment.updateStrategy` to a Recreate-equivalent (`maxSurge: 0`, `maxUnavailable: "100%"`) to avoid the overlap entirely |

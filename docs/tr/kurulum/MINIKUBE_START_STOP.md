@@ -164,40 +164,42 @@ kubectl run nginx-target --image=nginx --overrides='{"spec":{"nodeSelector":{"ap
 kubectl expose pod nginx-target --port=80 --target-port=80 --name=nginx-target-svc -n oneuptime
 ```
 
-### 3.6 Nginx servisini doğrulayın
+### 3.6 HTTPS servisini doğrulayın
 
 ```bash
-kubectl get svc -n oneuptime oneuptime-nginx
+kubectl get svc -n oneuptime oneuptime-local-tls
 ```
 
-Minikube ortamında `EXTERNAL-IP` değerinin `<pending>` görünmesi normaldir;
-dashboard erişimi için port-forward kullanılır.
+Servis `ClusterIP` tipindedir; dashboard erişimi için port-forward kullanılır.
 
 ### 3.7 Port-forward'ı yeniden başlatın
 
 Ayrı bir terminal sekmesinde çalıştırın ve terminali açık bırakın:
 
 ```bash
-kubectl port-forward svc/oneuptime-nginx 8080:80 -n oneuptime
+./scripts/port-forward-https.sh
 ```
 
 Beklenen çıktı:
 
 ```text
-Forwarding from 127.0.0.1:8080 -> 7849
-Forwarding from [::1]:8080 -> 7849
+Forwarding from 127.0.0.1:80 -> 8080
+Forwarding from [::1]:80 -> 8080
+Forwarding from 127.0.0.1:443 -> 8443
+Forwarding from [::1]:443 -> 8443
 ```
 
 Arayüzü açın:
 
 ```text
-http://localhost:8080
+https://oneuptime.furkan.test
 ```
 
-İsteğe bağlı HTTP kontrolü:
+İsteğe bağlı TLS ve HTTP kontrolü:
 
 ```bash
-curl -I http://localhost:8080
+curl --cacert k8s/local-tls/certs/local-ca.crt \
+  -I https://oneuptime.furkan.test
 ```
 
 `HTTP/1.1 200` veya yönlendirme belirten geçerli bir HTTP yanıtı alınmalıdır.
@@ -237,12 +239,13 @@ kubectl logs -n oneuptime POD_ADI --tail=100
 aşımında kubelet otomatik olarak yeniden dener. Yalnızca bu durum nedeniyle
 cluster'ı silmeyin veya Helm release'ini yeniden kurmayın.
 
-### `localhost:8080` açılmıyorsa
+### `oneuptime.furkan.test` açılmıyorsa
 
-1. `oneuptime-nginx` podunun `1/1 Running` olduğunu doğrulayın.
+1. `oneuptime-local-tls` ve `oneuptime-nginx` podlarının `1/1 Running`
+   olduğunu doğrulayın.
 2. Port-forward terminalinin hâlâ açık olduğunu kontrol edin.
 3. Port-forward kapandıysa 3.7 bölümündeki komutu yeniden çalıştırın.
-4. Port `8080` kullanımda ise eski port-forward sürecini kapatın veya hâlihazırda
+4. Port `443` kullanımda ise eski port-forward sürecini kapatın veya hâlihazırda
    çalışan terminal oturumunu kullanın.
 
 ## Hızlı komut özeti
@@ -261,6 +264,6 @@ kubectl config use-context oneuptime
 kubectl get nodes -L app
 helm list -n oneuptime
 kubectl get pods -n oneuptime -o wide
-kubectl get svc -n oneuptime oneuptime-nginx
-kubectl port-forward svc/oneuptime-nginx 8080:80 -n oneuptime
+kubectl get svc -n oneuptime oneuptime-local-tls
+./scripts/port-forward-https.sh
 ```
