@@ -88,7 +88,8 @@ it suitable for controlled failure and recovery exercises without modifying the
 monitoring platform.
 
 For a detailed explanation of Kubernetes service discovery and the request path
-between nodes, see [Cross-Monitoring Traffic](CROSS_MONITORING_TRAFFIC.md).
+between nodes, see
+[Cross-Monitoring Traffic](docs/tr/genel-mimari/CROSS_MONITORING_TRAFFIC.md).
 
 ## Status and Incident Management
 
@@ -223,10 +224,11 @@ must never be committed to the repository.
 |---|---|
 | [Setting Up the Project](SETTING_UP.md) | Complete Minikube, Helm, probe, and cross-monitoring installation guide |
 | [Local HTTPS and TLS](docs/tr/kurulum/LOCAL_HTTPS.md) | Trusted localhost certificate, TLS proxy, and HTTPS port-forward guide |
-| [Operational Guide](docs/instructions/README.md) | End-to-end Status Page, incident, workflow, Telegram, watchdog, and testing overview |
-| [Stages 1–13](docs/instructions/01-13-uygulama-sirasi.md) | Ordered implementation and acceptance sequence |
-| [Cross-Monitoring Traffic](CROSS_MONITORING_TRAFFIC.md) | Kubernetes DNS names, Services, endpoints, and inter-node traffic flow |
-| [Minikube Start and Stop](MINIKUBE_START_STOP.md) | Safe lifecycle operations for the dedicated `oneuptime` profile |
+| [Local DNS, TLS, and Application Traffic](docs/tr/kurulum/LOCAL_DNS_TLS_TRAFFIC.md) | End-to-end browser, hosts resolution, port-forward, TLS proxy, Service DNS, and application traffic flow |
+| [Operational Guide](docs/tr/instructions/README.md) | End-to-end Status Page, incident, workflow, Telegram, watchdog, and testing overview |
+| [Stages 1–13](docs/tr/instructions/01-13-uygulama-sirasi.md) | Ordered implementation and acceptance sequence |
+| [Cross-Monitoring Traffic](docs/tr/genel-mimari/CROSS_MONITORING_TRAFFIC.md) | Kubernetes DNS names, Services, endpoints, and inter-node traffic flow |
+| [Minikube Start and Stop](docs/tr/kurulum/MINIKUBE_START_STOP.md) | Safe lifecycle operations for the dedicated `oneuptime` profile |
 
 The detailed operational documentation includes numbered UI evidence and
 sanitized expected terminal output. No live Telegram credentials are included.
@@ -251,12 +253,19 @@ sanitized expected terminal output. No live Telegram credentials are included.
 ├── workflows/
 │   ├── oneuptime-incident-telegram-workflow.json
 │   └── oneuptime-recovery-telegram-workflow.json
-└── docs/instructions/
-    ├── README.md
-    ├── 01-13-uygulama-sirasi.md
-    ├── 01-telegram-botu-ve-chat-id.md
-    ├── ...
-    └── 13-son-kabul-kontrolleri.md
+└── docs/tr/
+    ├── genel-mimari/
+    │   └── CROSS_MONITORING_TRAFFIC.md
+    ├── kurulum/
+    │   ├── LOCAL_HTTPS.md
+    │   ├── LOCAL_DNS_TLS_TRAFFIC.md
+    │   └── MINIKUBE_START_STOP.md
+    └── instructions/
+        ├── README.md
+        ├── 01-13-uygulama-sirasi.md
+        ├── 01-telegram-botu-ve-chat-id.md
+        ├── ...
+        └── 13-son-kabul-kontrolleri.md
 ```
 
 ## Security Notes

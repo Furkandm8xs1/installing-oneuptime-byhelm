@@ -262,9 +262,9 @@ edilir.
 
 ## 9. Kullanılan dosyalar
 
-- [Incident Workflow JSON](../../oneuptime-incident-telegram-workflow.json)
-- [Recovery Workflow JSON](../../oneuptime-recovery-telegram-workflow.json)
-- [Node 1 Watchdog manifesti](../../node1-watchdog.yaml)
+- [Incident Workflow JSON](../../../workflows/oneuptime-incident-telegram-workflow.json)
+- [Recovery Workflow JSON](../../../workflows/oneuptime-recovery-telegram-workflow.json)
+- [Node 1 Watchdog manifesti](../../../node1-watchdog.yaml)
 - [Aşama 1–13 uygulama sırası](01-13-uygulama-sirasi.md)
 
 ## 10. Ayrıntılı dokümantasyon
@@ -303,6 +303,6 @@ aşamalarda `text` kod bloklarıyla **beklenen çıktı yapısı** verilmiştir.
 alanlar `<pod-hash>`, `<pod-ip>`, `<age>` ve `<UTC-time>` gibi yer tutucularla
 gösterilir.
 
-Görseller `docs/instructions/images/` altına eklenmeden önce token, Chat ID,
+Görseller `docs/tr/instructions/images/` altına eklenmeden önce token, Chat ID,
 secret içerikleri, kullanıcı adı ve oturum bilgileri sansürlenmelidir. Kullanılan
 numaraların tam eşleştirmesi için [görsel indeksine](images/README.md) bakın.

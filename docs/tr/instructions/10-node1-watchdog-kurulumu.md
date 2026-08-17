@@ -6,7 +6,7 @@ Node 1 üzerindeki OneUptime Core tamamen çalışamaz hale geldiğinde, OneUpti
 Workflow motoruna ihtiyaç duymadan Node 2'den Telegram bildirimi göndermek.
 
 Kullanılan manifest:
-[node1-watchdog.yaml](../../node1-watchdog.yaml)
+[node1-watchdog.yaml](../../../node1-watchdog.yaml)
 
 ## 10.1 Neden ikinci bir bildirim yolu gerekir?
 

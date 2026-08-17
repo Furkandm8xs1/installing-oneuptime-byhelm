@@ -82,7 +82,7 @@ her aşamanın bağlantılı dokümanında bulunur.
 ## Ekran görüntüsü yaklaşımı
 
 Her ayrıntılı dosyada `Ekran görüntüsü önerisi` başlıklı notlar bulunur. Görseller
-`docs/instructions/images/` altında tutulmalı ve eklenmeden önce token, Chat ID,
+`docs/tr/instructions/images/` altında tutulmalı ve eklenmeden önce token, Chat ID,
 secret içerikleri, kullanıcı adı ve oturum bilgileri sansürlenmelidir.
 
 Özellikle aşağıdaki kanıt görselleri raporun ana akışını göstermek için yeterlidir:

@@ -274,6 +274,12 @@ monitor istekleri `oneuptime.furkan.test` üzerinden gitmez. Probe'lar cluster i
 Bu nedenle port-forward terminali kapansa bile çalışan probe'ların iç monitor
 kontrolleri devam edebilir; yalnızca Mac'ten dashboard erişimi kesilir.
 
+Tarayıcıdan başlayıp `/etc/hosts`, portsuz `80/443`, TLS proxy, CoreDNS ve
+OneUptime gateway üzerinden uygulamaya ulaşan kullanıcı trafiği ayrı belgede
+ayrıntılı ve diyagramlı olarak açıklanır:
+
+- [Yerel DNS, TLS Proxy ve Uygulama Trafik Akışı](../kurulum/LOCAL_DNS_TLS_TRAFFIC.md)
+
 ## 9. HTTP ve güvenlik notu
 
 İki monitor URL'si de `http://` kullandığı için hedef trafiği uygulama katmanında

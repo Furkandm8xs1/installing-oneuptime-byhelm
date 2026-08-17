@@ -326,7 +326,7 @@ Dashboard → **Probes** sayfası:
 
 Aşağıdaki ekran görüntüsü, bir monitorün **Probes** sekmesinden alınmıştır ve her iki probe’un da kayıtlı ve bağlı olduğunu doğrular:
 
-![İki probe bağlı](img/monitor-probes-connected.png)
+![İki probe bağlı](../../../img/monitor-probes-connected.png)
 _Varsayılan probe (Node 1) ve External-Probe-Node2 (Node 2) “Connected” durumundadır._
 
 ### 5.2 Node 2 üzerinde hafif bir hedef oluşturun
@@ -360,7 +360,7 @@ Dashboard → **Monitors → Create Monitor**:
 
 Çalışma tamamlandığında monitor özetinde kullanılan probe ve başarılı yanıt görünür:
 
-![Node 2 monitor özeti](img/monitor-node2-nginx-summary.png)
+![Node 2 monitor özeti](../../../img/monitor-node2-nginx-summary.png)
 _`Node2-Nginx-Health-Check` — “Probe” (Node 1) tarafından servis edildi, `nginx-target-svc` üzerinde 3 ms içinde HTTP 200 döndü._
 
 ### 5.4 Monitor 2 oluşturun: Node 2’nin probe’u → Node 1’i izler
@@ -380,7 +380,7 @@ Dashboard → **Monitors → Create Monitor**:
 
 Aşağıdaki monitor özeti, monitorün `External-Probe-Node2` tarafından servis edildiğini ve Node 1’den sağlıklı yanıt aldığını doğrular:
 
-![Node 1 monitor özeti](img/monitor-node1-app-summary.png)
+![Node 1 monitor özeti](../../../img/monitor-node1-app-summary.png)
 _`Node1-App-Health-Check` — “External-Probe-Node2” (Node 2) tarafından servis edildi, çekirdek uygulamanın `/status/live` uç noktasından 8 ms içinde HTTP 200 aldı._
 
 ### 5.5 Son doğrulama

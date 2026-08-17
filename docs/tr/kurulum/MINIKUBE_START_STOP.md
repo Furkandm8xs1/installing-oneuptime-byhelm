@@ -4,7 +4,7 @@ Bu belge, mevcut `oneuptime` Minikube profilini veri kaybetmeden durdurmak ve
 daha sonra yeniden başlatmak için kullanılacak operasyon sırasını açıklar.
 
 > Bu akış mevcut bir cluster içindir. Profil daha önce silindiyse bu belgeyle
-> devam etmeyin; [README.md](README.md) içindeki sıfırdan kurulum adımlarını
+> devam etmeyin; [proje README dosyası](../../../README.md) içindeki sıfırdan kurulum adımlarını
 > uygulayın.
 
 ## `stop` ve `delete` arasındaki fark
@@ -73,7 +73,7 @@ Mevcut profili açarken yeniden `--nodes`, `--memory` veya `--cpus` vermek
 gerekmez; Minikube profilin kayıtlı ayarlarını kullanır.
 
 > `Profile "oneuptime" not found` mesajı alınırsa profil durdurulmamış, silinmiş
-> demektir. Bu durumda [README.md](README.md) içindeki iki node'lu sıfırdan
+> demektir. Bu durumda [proje README dosyası](../../../README.md) içindeki iki node'lu sıfırdan
 > kurulum akışını uygulayın.
 
 ## 3. Start işleminden sonra yapılması gerekenler

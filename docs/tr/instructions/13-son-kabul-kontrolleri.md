@@ -216,7 +216,7 @@ Dokümantasyon klasöründe Telegram bot token biçimine benzeyen yanlışlıkla
 eklenmiş bir değer olup olmadığını kontrol etmek için:
 
 ```bash
-rg -n '[0-9]{8,12}:[A-Za-z0-9_-]{30,}' docs/instructions
+rg -n '[0-9]{8,12}:[A-Za-z0-9_-]{30,}' docs/tr/instructions
 ```
 
 Beklenen sonuç boş çıktıdır.

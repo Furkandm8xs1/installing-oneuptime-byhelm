@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: oneuptime
+
+resources:
+  - proxy.yaml
+
+configMapGenerator:
+  - name: oneuptime-local-tls-nginx
+    files:
+      - nginx.conf
+
+secretGenerator:
+  - name: oneuptime-local-tls
+    type: kubernetes.io/tls
+    files:
+      - tls.crt=certs/localhost.crt
+      - tls.key=certs/localhost.key
+
+generatorOptions:
+  # Stable names let kubectl update the Secret in place, so expired private-key
+  # material is not left behind under old content-hashed names.
+  disableNameSuffixHash: true
+  labels:
+    app.kubernetes.io/name: oneuptime-local-tls
+    app.kubernetes.io/part-of: oneuptime

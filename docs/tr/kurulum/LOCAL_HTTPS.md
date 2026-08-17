@@ -10,6 +10,11 @@ Bu belge iki amacı birlikte taşır:
 Belgedeki uzun ve tekrarlı terminal çıktıları okunabilirlik için kısaltılmıştır.
 Hiçbir Probe Key, parola veya özel anahtar içeriği belgeye yazılmamıştır.
 
+DNS'ten uygulamaya kadar paketlerin geçtiği katmanlar, port dönüşümleri,
+Kubernetes Service/Endpoint ilişkileri ve Mermaid akış şemaları ayrı olarak
+[Yerel DNS, TLS Proxy ve Uygulama Trafik Akışı](LOCAL_DNS_TLS_TRAFFIC.md)
+belgesinde açıklanmıştır.
+
 ## İçindekiler
 
 1. [Son durum](#1-son-durum)
@@ -58,7 +63,8 @@ Son durumda:
 
 - Tarayıcı ile proxy arasındaki trafik şifrelidir.
 - TLS 1.2 ve TLS 1.3 desteklenir.
-- Sertifika `localhost`, `127.0.0.1` ve `::1` için geçerlidir.
+- Sertifika `oneuptime.furkan.test`, `localhost`, `127.0.0.1` ve `::1` için
+  geçerlidir.
 - Yerel CA macOS kullanıcı anahtar zincirinde güvenilir durumdadır.
 - OneUptime'ın kendi URL ayarı da `https://oneuptime.furkan.test` olarak
   güncellenmiştir.
@@ -826,6 +832,27 @@ STATUS: deployed
 REVISION: 5
 ```
 
+### 3.16 DNS ve portsuz alan adı aşamasında karşılaşılan problemler
+
+Bu aşamada yalnızca başarılı sonuca değil, başarısız denemelere de bakıldı.
+Karşılaşılan sorunların özeti:
+
+| Deneme | Gerçek belirti/çıktı | Neden | Düzeltme |
+|---|---|---|---|
+| `/etc/hosts` kaydını ilk AppleScript komutuyla ekleme | `syntax error: A real number can’t go after this "\\". (-2740)` | AppleScript içine gömülen shell komutunda kaçış karakterleri hatalıydı | `/etc/hosts` dosyasının değişmediği doğrulandı; idempotent geçici shell helper ile kayıt eklendi ve helper silindi |
+| Yönetici yetkisi gerektiren adım | Terminal çıktı üretmeden macOS onayını bekledi | `/etc/hosts` ve düşük TCP portları yönetici yetkisi gerektirir | Açılan macOS yetki penceresi onaylandı; betik yetki isteneceğini açıkça yazacak hale getirildi |
+| `443:443` port-forward'ını normal kullanıcıyla başlatma | `bind: permission denied` ve `unable to listen on any of the requested ports` | macOS'ta 1024'ten küçük portlar ayrıcalıklıdır | `sudo kubectl`, normal kullanıcının açık `--kubeconfig` yolu ile çalıştırıldı |
+| İki portlu yeni port-forward'ı başlatma | `80` açıldı fakat HTTPS connection reset/refused verdi | Önceki root port-forward süreci `443` portunu tutuyordu | `ps` ve `netstat` ile bu çalışma sırasında açılmış eski PID `62030` bulundu, yalnızca o süreç kapatıldı ve `80/443` birlikte yeniden başlatıldı |
+| Query string içeren HTTP redirect testi | `zsh:1: no matches found: http://oneuptime.furkan.test/test-path?check=1` | zsh, tırnaksız `?` karakterini glob kabul etti | URL tek tırnak içine alındı |
+| TLS proxy rollout'u | `lost connection to pod` | Port-forward'ın bağlı olduğu eski pod rollout sırasında silindi | Rollout bittikten sonra port-forward yeniden başlatıldı |
+| Başka bir cihazdan aynı adı kullanma beklentisi | Alan adı diğer cihazda çözümlenmez | `/etc/hosts` ortak DNS değil, yalnızca bu Mac'e ait yerel kayıttır | Tek makine kapsamı korundu; diğer cihazlar için ayrı DNS/hosts, LAN listener ve CA güveni gerektiği dokümante edildi |
+| Alan adı seçimi | `.furkan` ve `oneuptime.com` seçenekleri güvenli değildi | `.furkan` ayrılmış bir test son eki değildir; `oneuptime.com` gerçek public alandır | IANA özel kullanım alanı altındaki `oneuptime.furkan.test` seçildi |
+
+`/etc/hosts` kaydı DNS sunucusu değildir. macOS'un yerel ad çözümleme
+kaynaklarından biridir ve dış DNS'e kayıt göndermez. Uçtan uca yolun ve her
+hata katmanının ayrıntısı
+[LOCAL_DNS_TLS_TRAFFIC.md](LOCAL_DNS_TLS_TRAFFIC.md) dosyasındadır.
+
 ## 4. Yapılan doğrulamalar ve gerçek sonuçlar
 
 ### 4.1 Çıplak alan adının HTTPS'e yönlendirilmesi
@@ -1103,6 +1130,7 @@ sözdiziminde ve Git whitespace kontrolünde hata bulunmadığını gösterir.
 | `scripts/setup-local-https.sh` | CA/sertifika üretimi, trust, K8s apply ve Helm upgrade |
 | `scripts/port-forward-https.sh` | Yerel 80 ve 443 portlarını redirect/TLS Service'e iletir |
 | `docs/tr/kurulum/LOCAL_HTTPS.md` | Bu uygulama günlüğü ve işletim rehberi |
+| `docs/tr/kurulum/LOCAL_DNS_TLS_TRAFFIC.md` | DNS/hosts'tan OneUptime uygulamasına kadar uçtan uca trafik yolu ve akış şemaları |
 
 ### Değiştirilen ana ayarlar
 

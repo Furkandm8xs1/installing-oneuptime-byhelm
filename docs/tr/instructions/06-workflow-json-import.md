@@ -5,8 +5,8 @@
 Workflow Builder içinde blokları tek tek kurmak yerine, OneUptime `12.0.6` export
 şemasına uygun hazırlanmış iki workflow'u JSON olarak içe aktarmak:
 
-- [Incident workflow JSON](../../oneuptime-incident-telegram-workflow.json)
-- [Recovery workflow JSON](../../oneuptime-recovery-telegram-workflow.json)
+- [Incident workflow JSON](../../../workflows/oneuptime-incident-telegram-workflow.json)
+- [Recovery workflow JSON](../../../workflows/oneuptime-recovery-telegram-workflow.json)
 
 JSON dosyaları gerçek token veya Chat ID içermez. Yalnızca şu Global Variable
 referanslarını taşır:

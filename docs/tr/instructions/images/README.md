@@ -1,6 +1,6 @@
 # Numaralı Ekran Görüntüsü İndeksi
 
-Bu dizin, `docs/instructions/` altındaki talimatlarda kullanılan numaralı ekran
+Bu dizin, `docs/tr/instructions/` altındaki talimatlarda kullanılan numaralı ekran
 görüntülerini içerir. Görsel numaraları, dokümantasyondaki şekil numaralarıyla
 aynıdır.
 
