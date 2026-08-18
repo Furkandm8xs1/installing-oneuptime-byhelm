@@ -1,4 +1,5 @@
 oneuptime
-
+.DS_Store
 # Generated local CA, certificates, and private keys.
 k8s/local-tls/certs/
+
