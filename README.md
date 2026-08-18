@@ -225,6 +225,8 @@ must never be committed to the repository.
 | [Setting Up the Project](SETTING_UP.md) | Complete Minikube, Helm, probe, and cross-monitoring installation guide |
 | [Local HTTPS and TLS](docs/tr/kurulum/LOCAL_HTTPS.md) | Trusted localhost certificate, TLS proxy, and HTTPS port-forward guide |
 | [Local DNS, TLS, and Application Traffic](docs/tr/kurulum/LOCAL_DNS_TLS_TRAFFIC.md) | End-to-end browser, hosts resolution, port-forward, TLS proxy, Service DNS, and application traffic flow |
+| [LAN-only Status Page](docs/tr/kurulum/LAN_STATUS_PAGE.md) | Expose only the selected public Status Page to devices on the same Wi-Fi network |
+| [LAN Status Page Implementation Log](docs/tr/kurulum/LAN_STATUS_PAGE_UYGULAMA_GUNLUGU.md) | Chronological commands, outputs, decisions, proxy internals, DNS tests, and end-to-end traffic flow |
 | [Operational Guide](docs/tr/instructions/README.md) | End-to-end Status Page, incident, workflow, Telegram, watchdog, and testing overview |
 | [Stages 1–13](docs/tr/instructions/01-13-uygulama-sirasi.md) | Ordered implementation and acceptance sequence |
 | [Cross-Monitoring Traffic](docs/tr/genel-mimari/CROSS_MONITORING_TRAFFIC.md) | Kubernetes DNS names, Services, endpoints, and inter-node traffic flow |
@@ -247,9 +249,14 @@ sanitized expected terminal output. No live Telegram credentials are included.
 │   ├── kustomization.yaml
 │   ├── nginx.conf
 │   └── proxy.yaml
+├── k8s/lan-status/
+│   ├── kustomization.yaml
+│   ├── nginx.conf
+│   └── proxy.yaml
 ├── scripts/
 │   ├── setup-local-https.sh
-│   └── port-forward-https.sh
+│   ├── port-forward-https.sh
+│   └── port-forward-status-page-lan.sh
 ├── workflows/
 │   ├── oneuptime-incident-telegram-workflow.json
 │   └── oneuptime-recovery-telegram-workflow.json
@@ -257,6 +264,8 @@ sanitized expected terminal output. No live Telegram credentials are included.
     ├── genel-mimari/
     │   └── CROSS_MONITORING_TRAFFIC.md
     ├── kurulum/
+    │   ├── LAN_STATUS_PAGE.md
+    │   ├── LAN_STATUS_PAGE_UYGULAMA_GUNLUGU.md
     │   ├── LOCAL_HTTPS.md
     │   ├── LOCAL_DNS_TLS_TRAFFIC.md
     │   └── MINIKUBE_START_STOP.md

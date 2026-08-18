@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: oneuptime
+
+resources:
+  - proxy.yaml
+
+configMapGenerator:
+  - name: oneuptime-lan-status-nginx
+    files:
+      - nginx.conf
+
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    app.kubernetes.io/name: oneuptime-lan-status
+    app.kubernetes.io/part-of: oneuptime
