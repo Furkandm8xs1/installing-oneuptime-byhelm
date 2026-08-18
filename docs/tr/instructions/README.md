@@ -1,11 +1,11 @@
 # OneUptime Cross-Monitoring, Incident ve Telegram Bildirim Akışı
 
 Bu klasör, iki node'lu Minikube ortamında kurulan OneUptime cross-monitoring,
-public Status Page, otomatik incident, Telegram Workflow ve bağımsız watchdog
-yapısını baştan sona açıklar.
+public Status Page, otomatik incident, Telegram Workflow, bağımsız watchdog ve
+yerel TLS sertifika monitorü yapısını baştan sona açıklar.
 
 Tam uygulama sırası için:
-[Aşama 1–13 — Baştan Sona Uygulama Sırası](01-13-uygulama-sirasi.md)
+[Aşama 1–14 — Baştan Sona Uygulama Sırası](01-13-uygulama-sirasi.md)
 
 ## 1. Kurulan yapı ne yapıyor?
 
@@ -19,6 +19,8 @@ Sistem iki yönlü izleme gerçekleştirir:
 - Incident ve Recovery Workflow'ları Telegram'a bildirim gönderir.
 - Node 1 üzerindeki OneUptime Core tamamen çalışamazsa Node 2'deki bağımsız
   watchdog, OneUptime Workflow motoruna ihtiyaç duymadan Telegram'a mesaj yollar.
+- Probe One, `oneuptime.furkan.test` TLS sertifikasının kalan süresini cluster
+  içindeki TLS Service üzerinden izler.
 
 ## 2. Genel mimari
 
@@ -265,7 +267,8 @@ edilir.
 - [Incident Workflow JSON](../../../workflows/oneuptime-incident-telegram-workflow.json)
 - [Recovery Workflow JSON](../../../workflows/oneuptime-recovery-telegram-workflow.json)
 - [Node 1 Watchdog manifesti](../../../node1-watchdog.yaml)
-- [Aşama 1–13 uygulama sırası](01-13-uygulama-sirasi.md)
+- [Probe One host alias overlay'i](../../../probe-one-host-alias.yaml)
+- [Aşama 1–14 uygulama sırası](01-13-uygulama-sirasi.md)
 
 ## 10. Ayrıntılı dokümantasyon
 
@@ -284,6 +287,7 @@ edilir.
 | Nginx kesinti testi | [Aşama 11](11-nginx-kesinti-testi.md) |
 | Core kesinti testi | [Aşama 12](12-node1-core-kesinti-testi.md) |
 | Son kabul kontrolleri | [Aşama 13](13-son-kabul-kontrolleri.md) |
+| TLS Certificate Monitor | [Aşama 14](14-tls-certificate-monitor.md) |
 
 ## 11. Kullanılan kanıt görselleri ve terminal çıktıları
 
@@ -296,6 +300,7 @@ Numaralı arayüz ve Telegram görselleri ilgili aşamaların içinde kullanılm
 - Nginx kesintisi, incident ve recovery kanıtları: Aşama 11
 - Watchdog DOWN/RECOVERED mesajları: Aşama 12
 - Son Status Page ve Workflow run durumu: Aşama 13
+- TLS Certificate Monitor filtreleri ve ilk Operational sonuç: Aşama 14
 
 Terminal sonuçları görsel olarak saklanmamıştır. Kubernetes kaynak adları, pod
 hash'leri, IP adresleri ve yaş bilgileri her kurulumda değişebildiği için ilgili

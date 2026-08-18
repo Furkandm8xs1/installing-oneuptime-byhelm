@@ -1,8 +1,8 @@
-# Aşama 1–13 — Baştan Sona Uygulama Sırası
+# Aşama 1–14 — Baştan Sona Uygulama Sırası
 
-Bu dosya, OneUptime cross-monitoring, Status Page, Telegram workflow ve bağımsız
-watchdog çalışmasının ilk hazırlıktan son kabul testine kadar tam uygulama
-sırasını tek yerde toplar.
+Bu dosya, OneUptime cross-monitoring, Status Page, Telegram workflow, bağımsız
+watchdog ve yerel TLS sertifika monitorü çalışmasının ilk hazırlıktan son kabul
+testine kadar tam uygulama sırasını tek yerde toplar.
 
 Ayrıntılı açıklamalar, komutlar, kabul kontrolleri ve ekran görüntüsü önerileri
 her aşamanın bağlantılı dokümanında bulunur.
@@ -79,6 +79,16 @@ her aşamanın bağlantılı dokümanında bulunur.
     - İki monitor ve Status Page'in Operational olduğu doğrulanır.
     - Workflow logları, Telegram mesajları ve secret güvenliği kontrol edilir.
 
+## TLS sertifika izleme
+
+14. [TLS Certificate Monitor](14-tls-certificate-monitor.md)
+    - Mevcut proje içinde SSL Certificate Monitor oluşturulur.
+    - Probe One, `hostAliases` üzerinden yerel TLS Service'e ulaşır.
+    - 7 günlük Offline/Critical, 30 günlük Degraded ve sağlıklı Operational
+      kriterleri doğru sırada tanımlanır.
+    - Yerel CA güven sınırlaması ve `[Cross-Monitoring]` Telegram başlık öneki
+      doğrulanır.
+
 ## Ekran görüntüsü yaklaşımı
 
 Her ayrıntılı dosyada `Ekran görüntüsü önerisi` başlıklı notlar bulunur. Görseller
@@ -95,3 +105,4 @@ secret içerikleri, kullanıcı adı ve oturum bilgileri sansürlenmelidir.
 - Nginx kesintisindeki Status Page ve Telegram mesaj çifti
 - Watchdog DOWN ve RECOVERED mesaj çifti
 - Son pod yerleşimi ve tamamen Operational Status Page
+- TLS Certificate Monitor kriter sırası ve Operational ilk sonuç

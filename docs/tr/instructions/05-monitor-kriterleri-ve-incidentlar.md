@@ -6,6 +6,12 @@ Her cross-monitor başarısızlığında monitor durumunu `Offline` yapmak, otom
 incident oluşturmak, incident'ı Status Page'de göstermek ve hedef yeniden sağlıklı
 olduğunda incident'ı otomatik çözmek.
 
+Bu aşama Website türündeki iki cross-monitor içindir. Yerel TLS sertifikasının
+`Expires In Days` kriterleri ve Probe One'a özel DNS yapısı
+[Aşama 14 — TLS Certificate Monitor](14-tls-certificate-monitor.md) belgesinde
+ayrı anlatılır. TLS monitoründe 7 ve 30 günlük eşikler aynı Offline kartında
+birleştirilmemelidir.
+
 ## 5.1 Ön koşul: iki monitor
 
 | Monitor | Probe | Hedef |

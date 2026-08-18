@@ -5,6 +5,11 @@ uygulamasının yanıt verdiği ana kadar isteğin geçtiği bütün katmanları
 Kurulum ve sertifika üretme komutlarının ayrıntılı günlüğü için
 [Yerel HTTPS ve TLS Sertifikası](LOCAL_HTTPS.md) belgesine bakın.
 
+Probe One'ın aynı sertifikayı cluster içinden izlemesi tarayıcı yolundan
+farklıdır. `hostAliases`, ClusterIP ve kesintisiz Probe One rollout ayrıntıları
+[TLS Certificate Monitor İçin Probe One Ağ Yapılandırması](TLS_CERTIFICATE_MONITOR_PROBE_ONE.md)
+belgesinde açıklanır.
+
 ## 1. En kısa özet
 
 Güncel kullanıcı adresi:

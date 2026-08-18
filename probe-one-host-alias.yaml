@@ -1,0 +1,9 @@
+# Probe One-only overlay.
+# Lets the in-cluster probe resolve the local TLS hostname directly to the
+# oneuptime-local-tls Kubernetes Service without changing the base values file.
+probes:
+  one:
+    hostAliases:
+      - ip: "10.97.179.200"
+        hostnames:
+          - "oneuptime.furkan.test"

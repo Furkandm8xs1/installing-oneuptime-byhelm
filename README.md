@@ -226,9 +226,10 @@ must never be committed to the repository.
 | [Local HTTPS and TLS](docs/tr/kurulum/LOCAL_HTTPS.md) | Trusted localhost certificate, TLS proxy, and HTTPS port-forward guide |
 | [Local DNS, TLS, and Application Traffic](docs/tr/kurulum/LOCAL_DNS_TLS_TRAFFIC.md) | End-to-end browser, hosts resolution, port-forward, TLS proxy, Service DNS, and application traffic flow |
 | [LAN-only Status Page](docs/tr/kurulum/LAN_STATUS_PAGE.md) | Expose only the selected public Status Page to devices on the same Wi-Fi network |
-| [LAN Status Page Implementation Log](docs/tr/kurulum/LAN_STATUS_PAGE_UYGULAMA_GUNLUGU.md) | Chronological commands, outputs, decisions, proxy internals, DNS tests, and end-to-end traffic flow |
+| [LAN Status Page Implementation Log](docs/tr/trouble-shooting/LAN_STATUS_PAGE_UYGULAMA_GUNLUGU.md) | Chronological commands, outputs, decisions, proxy internals, DNS tests, and end-to-end traffic flow |
+| [TLS Certificate Monitor Troubleshooting Log](docs/tr/trouble-shooting/TLS_CERTIFICATE_MONITOR_PROBE_ONE_UYGULAMA_GUNLUGU.md) | Probe hostname diagnosis, ClusterIP/SNI tests, host alias rollout, outputs, and technical decisions |
 | [Operational Guide](docs/tr/instructions/README.md) | End-to-end Status Page, incident, workflow, Telegram, watchdog, and testing overview |
-| [Stages 1–13](docs/tr/instructions/01-13-uygulama-sirasi.md) | Ordered implementation and acceptance sequence |
+| [Stages 1–14](docs/tr/instructions/01-13-uygulama-sirasi.md) | Ordered implementation and acceptance sequence |
 | [Cross-Monitoring Traffic](docs/tr/genel-mimari/CROSS_MONITORING_TRAFFIC.md) | Kubernetes DNS names, Services, endpoints, and inter-node traffic flow |
 | [Minikube Start and Stop](docs/tr/kurulum/MINIKUBE_START_STOP.md) | Safe lifecycle operations for the dedicated `oneuptime` profile |
 
@@ -243,6 +244,7 @@ sanitized expected terminal output. No live Telegram credentials are included.
 ├── SETTING_UP.md
 ├── values.yaml
 ├── probe2-values.yaml
+├── probe-one-host-alias.yaml
 ├── all.yaml
 ├── node1-watchdog.yaml
 ├── k8s/local-tls/
@@ -265,16 +267,20 @@ sanitized expected terminal output. No live Telegram credentials are included.
     │   └── CROSS_MONITORING_TRAFFIC.md
     ├── kurulum/
     │   ├── LAN_STATUS_PAGE.md
-    │   ├── LAN_STATUS_PAGE_UYGULAMA_GUNLUGU.md
     │   ├── LOCAL_HTTPS.md
     │   ├── LOCAL_DNS_TLS_TRAFFIC.md
+    │   ├── TLS_CERTIFICATE_MONITOR_PROBE_ONE.md
     │   └── MINIKUBE_START_STOP.md
+    ├── trouble-shooting/
+    │   ├── LAN_STATUS_PAGE_UYGULAMA_GUNLUGU.md
+    │   └── TLS_CERTIFICATE_MONITOR_PROBE_ONE_UYGULAMA_GUNLUGU.md
     └── instructions/
         ├── README.md
         ├── 01-13-uygulama-sirasi.md
         ├── 01-telegram-botu-ve-chat-id.md
         ├── ...
-        └── 13-son-kabul-kontrolleri.md
+        ├── 13-son-kabul-kontrolleri.md
+        └── 14-tls-certificate-monitor.md
 ```
 
 ## Security Notes

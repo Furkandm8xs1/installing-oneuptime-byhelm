@@ -15,6 +15,11 @@ Kubernetes Service/Endpoint ilişkileri ve Mermaid akış şemaları ayrı olara
 [Yerel DNS, TLS Proxy ve Uygulama Trafik Akışı](LOCAL_DNS_TLS_TRAFFIC.md)
 belgesinde açıklanmıştır.
 
+Bu sertifikanın kalan süresini OneUptime Probe One ile izlemek için sonradan
+yapılan `hostAliases` değişikliği, kesintisiz rollout ve doğrulamalar
+[TLS Certificate Monitor İçin Probe One Ağ Yapılandırması](TLS_CERTIFICATE_MONITOR_PROBE_ONE.md)
+belgesinde tutulur.
+
 ## İçindekiler
 
 1. [Son durum](#1-son-durum)

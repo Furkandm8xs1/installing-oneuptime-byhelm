@@ -2,7 +2,7 @@
 
 Gerçek uygulama sırasında çalıştırılan terminal komutları, çıktıları, alınan
 kararlar ve bütün dosyaların ayrıntılı açıklaması için
-[LAN Status Page Uygulama Günlüğü](LAN_STATUS_PAGE_UYGULAMA_GUNLUGU.md)
+[LAN Status Page Uygulama Günlüğü](../trouble-shooting/LAN_STATUS_PAGE_UYGULAMA_GUNLUGU.md)
 belgesine bakın.
 
 Bu yapılandırma yalnızca aşağıdaki Status Page'i yerel Wi-Fi ağına açar:

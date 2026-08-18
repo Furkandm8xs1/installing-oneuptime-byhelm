@@ -86,7 +86,9 @@ scripts/
 └── port-forward-status-page-lan.sh
 
 docs/tr/kurulum/
-├── LAN_STATUS_PAGE.md
+└── LAN_STATUS_PAGE.md
+
+docs/tr/trouble-shooting/
 └── LAN_STATUS_PAGE_UYGULAMA_GUNLUGU.md
 ```
 

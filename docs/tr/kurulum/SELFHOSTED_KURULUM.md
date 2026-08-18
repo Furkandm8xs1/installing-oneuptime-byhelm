@@ -216,6 +216,14 @@ anahtar zincirine güvenilir olarak eklemek için proje kökünde çalıştırı
 kalır. Ayrıntılar için [Yerel HTTPS ve TLS Sertifikası](LOCAL_HTTPS.md)
 rehberine bakın.
 
+Kurulum tamamlandıktan sonra sertifikanın kalan gününü Probe One üzerinden
+izlemek isterseniz ana `values.yaml` dosyasını değiştirmeden kullanılan overlay
+ve canlı rollout adımları için
+[TLS Certificate Monitor İçin Probe One Ağ Yapılandırması](TLS_CERTIFICATE_MONITOR_PROBE_ONE.md)
+rehberini uygulayın. Panel kriterleri
+[Aşama 14 — TLS Certificate Monitor](../instructions/14-tls-certificate-monitor.md)
+belgesindedir.
+
 ---
 
 ## Aşama 4 — İkinci Probe’un Dağıtılması (Node 2)
