@@ -232,6 +232,7 @@ must never be committed to the repository.
 | [Stages 1–14](docs/tr/instructions/01-13-uygulama-sirasi.md) | Ordered implementation and acceptance sequence |
 | [Cross-Monitoring Traffic](docs/tr/genel-mimari/CROSS_MONITORING_TRAFFIC.md) | Kubernetes DNS names, Services, endpoints, and inter-node traffic flow |
 | [Minikube Start and Stop](docs/tr/kurulum/MINIKUBE_START_STOP.md) | Safe lifecycle operations for the dedicated `oneuptime` profile |
+| [Linux Environment and Minikube Node Guide](docs/tr/linux/LINUX_ORTAMI_VE_MINIKUBE_NODE_REHBERI.md) | Turkish beginner-to-deep guide to Linux paths, permissions, processes, namespaces, cgroups, container layers, and Kubernetes storage |
 
 The detailed operational documentation includes numbered UI evidence and
 sanitized expected terminal output. No live Telegram credentials are included.
