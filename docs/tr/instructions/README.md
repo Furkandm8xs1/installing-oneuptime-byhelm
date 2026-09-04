@@ -288,6 +288,7 @@ edilir.
 | Core kesinti testi | [Aşama 12](12-node1-core-kesinti-testi.md) |
 | Son kabul kontrolleri | [Aşama 13](13-son-kabul-kontrolleri.md) |
 | TLS Certificate Monitor | [Aşama 14](14-tls-certificate-monitor.md) |
+| OneUptime 12.0.6 → 12.0.33 Helm yükseltme denemesi | [Teknik uygulama günlüğü](../trouble-shooting/ONEUPTIME_12_0_6_TO_12_0_33_UPGRADE_UYGULAMA_GUNLUGU.md) |
 
 ## 11. Kullanılan kanıt görselleri ve terminal çıktıları
 
