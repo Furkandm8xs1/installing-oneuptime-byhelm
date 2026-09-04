@@ -7,6 +7,9 @@ httpProtocol: https
 
 # Reuse successfully downloaded images during local Minikube restarts.
 image:
+  # Pin every OneUptime component to the Helm release version. This avoids
+  # reusing a stale local `:release` image when pullPolicy is IfNotPresent.
+  tag: "12.0.33"
   pullPolicy: IfNotPresent
 
 # Core data services from the previously working all.yaml configuration.
